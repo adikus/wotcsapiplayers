@@ -224,6 +224,7 @@ module.exports = app = cls.Class.extend({
 		
 		DBTypes.Clan.find({},function(err,docs){
 			_.each(docs,function(clan){
+				if(clan.members)
 				_.each(clan.members[0],function(wid){
 					DBTypes.Player.findOne({wid: wid},function(err,doc){
 						if(!doc){
