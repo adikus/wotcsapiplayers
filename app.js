@@ -222,7 +222,7 @@ module.exports = app = cls.Class.extend({
 		
 		console.log("Updateing player list.");
 		
-		DBTypes.Clan.find({},function(err,docs){
+		DBTypes.Clan.find({}).limit(100).exec(function(err,docs){
 			_.each(docs,function(clan){
 				if(clan.members)
 				_.each(clan.members[0],function(wid){
