@@ -10,7 +10,8 @@ var clanSchema = mongoose.Schema({
 	status: 'string',
 	locked: 'number',
 	members: 'mixed',
-	updated_at: 'date'
+	updated_at: 'date',
+	players_updated_at: 'date'
 });
 var Clan = mongoose.model('Clan', clanSchema);
 var vehSchema = mongoose.Schema({ 

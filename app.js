@@ -222,7 +222,7 @@ module.exports = app = cls.Class.extend({
 		
 		console.log("Updateing player list.");
 		
-		DBTypes.Clan.find({}).limit(100).exec(function(err,docs){
+		DBTypes.Clan.find({}).limit(100).sort("players_updated_at").exec(function(err,docs){
 			_.each(docs,function(clan){
 				if(clan.members)
 				_.each(clan.members[0],function(wid){
@@ -241,6 +241,8 @@ module.exports = app = cls.Class.extend({
 						}
 					});
 				});
+				clan.players_updated_at = new Date();
+				clan.save();
 			});
 		});
 	},

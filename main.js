@@ -14,7 +14,7 @@ function main(){
 	setInterval(function(){
 		app.updatePlayerLists();
 		app.updateScores();
-	},600000);
+	},60000);
   	
   	server.setRoute('status',function(options){
   		return app.statusGlobal(options);
