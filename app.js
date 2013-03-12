@@ -224,7 +224,7 @@ module.exports = app = cls.Class.extend({
 		console.log("Updateing player list.");
 		time.setTime(time.getTime()-5*3600*1000);
 		
-		DBTypes.Clan.find({players_updated_at:{$not:{$lt:time}}}).limit(100).sort("players_updated_at").exec(function(err,docs){
+		DBTypes.Clan.find({players_updated_at:{$not:{$gt:time}}}).limit(100).sort("players_updated_at").exec(function(err,docs){
 			_.each(docs,function(clan){
 				if(clan.members)
 				_.each(clan.members[0],function(wid){
