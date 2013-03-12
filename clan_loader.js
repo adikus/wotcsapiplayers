@@ -23,6 +23,7 @@ module.exports = ClanLoader = cls.Class.extend({
 		
 		DBTypes.Player.count({clan_id: wid},function(err,count){
 			var l = count;
+			if(l == 0)self.done = true;
 			DBTypes.Player.find(cond1,function(err,docs){
 				var players = _.map(docs,function(doc){var p = new Player(doc.wid);p.doc = doc;return p;});
 				_.each(players,function(player){

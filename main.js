@@ -10,11 +10,12 @@ function main(){
   	app = new App();
 	
 	app.updatePlayerLists();
-	app.updateScores();
 	setInterval(function(){
 		app.updatePlayerLists();
-		app.updateScores();
-	},60000);
+	},600000);
+	
+	setInterval(function(){
+	},3600000);
   	
   	server.setRoute('status',function(options){
   		return app.statusGlobal(options);
