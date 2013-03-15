@@ -5,7 +5,7 @@ function main(){
     	App = require('./app'),
     	Config = require('./config');
         
-    mongoose.connect(process.env.MONGOHQ_URL || Config.defaultMongo);
+    mongoose.connect(process.env.MONGOHQ_URL || Config.defaultMongo, { server: { poolSize: 25 }});
 	
   	server = new Server(process.env.PORT || Config.defaultPort);
   	app = new App();

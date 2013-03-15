@@ -23,14 +23,14 @@ module.exports = Vehicle = cls.Class.extend({
 		DBTypes.PlVeh.findOne({player:self.pid,veh:self.vehDoc._id},function(err, doc){
 			if(!doc){
 				self.doc = new DBTypes.PlVeh();
-				self.doc.battles = self.battles;
-				self.doc.wins = self.wins;
 				self.doc.player = self.pid;
 				self.doc.veh = self.vehDoc._id;
 			}else {
 				self.doc = doc;
 			}	
 			self.doc.updated_at = Date.now();
+			self.doc.battles = self.battles;
+			self.doc.wins = self.wins;
 		
 			self.doc.save(function(){
 				if(self.find_callback)self.find_callback();	
@@ -87,6 +87,7 @@ module.exports = Vehicle = cls.Class.extend({
 					"nation": this.vehDoc.nation,
 					"wins": this.doc.wins,
 					"type": this.vehDoc.type,
+					"updated_at": this.doc.updated_at,
 				}
 	},
 	
