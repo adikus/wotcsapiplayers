@@ -3,7 +3,7 @@ module.exports = Config = {
 	updateStatusInterval: 10*60*1000,
 	updateScoreInterval: 30*60*1000,
 	loaderDeleteTime: 60*1000,
-	loaderWaitTime: 5*1000,
+	loaderWaitTime: 1000,
 	defaultPort: 3000,
 	defaultMongo: "mongodb://localhost/wotcsapi",
 	maxStats: 20,
