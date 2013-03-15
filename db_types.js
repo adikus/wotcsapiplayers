@@ -14,6 +14,7 @@ var clanSchema = mongoose.Schema({
 	players_updated_at: 'date'
 });
 var Clan = mongoose.model('Clan', clanSchema);
+
 var vehSchema = mongoose.Schema({ 
 	name: 'string',
 	lname: 'string',
@@ -37,6 +38,12 @@ var clanStatsSchema = mongoose.Schema({
 	value: 'mixed'
 });
 var ClanStats = mongoose.model('ClanStats', clanStatsSchema, 'clan_stats');
+
+var playerStatusSchema = mongoose.Schema({ 
+	_id: 'string',
+	value: 'mixed'
+});
+var PlayerStatus = mongoose.model('PlayerStatus', clanStatsSchema, 'player_status');
 
 var playerSchema = mongoose.Schema({
 	wid: 'string',
@@ -69,12 +76,6 @@ var statSchema = mongoose.Schema({
 });
 var Stat = mongoose.model('Stat', statSchema);
 
-var clanListSchema = mongoose.Schema({ 
-	wid: 'string',
-	updated_at: 'date'
-});
-var ClanList = mongoose.model('ClanList', clanListSchema);
-
 module.exports = DBTypes = {
 	Clan: Clan,
 	Veh: VehDB,
@@ -82,5 +83,5 @@ module.exports = DBTypes = {
 	Player: PlayerDB,
 	Stat: Stat,
 	ClanStats: ClanStats,
-	ClanList: ClanList
+	PlayerStatus: PlayerStatus
 };

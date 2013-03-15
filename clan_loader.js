@@ -1,17 +1,30 @@
 var cls = require("./lib/class"),
     _ = require("underscore"),
     DBTypes = require("./db_types"),
+    Config = require("./config"),
     http = require("http");
     
 module.exports = ClanLoader = cls.Class.extend({
 	init: function(wid,forceLoad){
 		var self = this,
-			time = new Date;
+			time = new Date();
 			
+		this.lastAccessed = new Date();
 		this.players = [];
 		this.done = false;
+		this.wid = wid;
+		
+		this.deleteInterval = setInterval(function(){
+			var now = new Date(),
+				duration = now.getTime()-self.lastAccessed.getTime();
+				
+				if(duration > Config.loaderDeleteTime){
+					clearInterval(self.deleteInterval);
+					self.delete_callback();
+				}
+		},1000);
 			
-		time.setTime(time.getTime()-12*3600000);
+		time.setTime(time.getTime()-Config.playerUpdateInterval);
 		if(forceLoad){
 			cond1 = {clan_id: wid,updated_at:{$gt:new Date()}};
 			cond2 = {clan_id: wid,updated_at:{$lt:new Date()}};
@@ -38,11 +51,16 @@ module.exports = ClanLoader = cls.Class.extend({
 				var players = _.map(docs,function(doc){var p = new Player(doc.wid);p.doc = doc;return p;});
 				_.each(players,function(player){
 					self.loadPlayer(player,function(){
-						player.getData(function(data){
-							self.players.push(data);
+						if(player.doc.clan_id == wid){
+							player.getData(function(data){
+								self.players.push(data);
+								l--;
+								if(l == 0)self.done = true;
+							});
+						}else {
 							l--;
 							if(l == 0)self.done = true;
-						})
+						}
 					});
 				});
 			});
@@ -50,7 +68,12 @@ module.exports = ClanLoader = cls.Class.extend({
 	},
 	
 	isDone: function() {
+		this.lastAccessed = new Date();
 		return this.done;
+	},
+	
+	deleteCallback: function(callback) {
+		this.delete_callback = callback;
 	},
 	
 	getData: function(last) {

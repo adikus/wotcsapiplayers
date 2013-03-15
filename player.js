@@ -2,7 +2,8 @@ var cls = require("./lib/class"),
     _ = require("underscore"),
     Vehicle = require("./vehicle"),
     Stat = require("./stat"),
-    DBTypes = require("./db_types");
+    DBTypes = require("./db_types"),
+    Config = require("./config");
     
 module.exports = Player = cls.Class.extend({
 	init: function(wid){
@@ -103,8 +104,10 @@ module.exports = Player = cls.Class.extend({
 				self.best[vehicle.type].tanks.push(vehicle);
 				self.vl++;
 			}
-			if(self.bestTiers[vehicle.type] != 5 && vehicle.type == 0 && vehicle.tier == 5 && vehicle.nation != 5 && vehicle.nation != 6)
+			if(self.bestTiers[vehicle.type] != 5 && vehicle.type == 0 && vehicle.tier == 5 && vehicle.nation != 5 && vehicle.nation != 6){
 				self.best[vehicle.type].scouts.push(vehicle);
+				self.vl++;
+			}
 		});
 	
 		_.each(this.bestTiers,function(tier,type){
@@ -116,7 +119,7 @@ module.exports = Player = cls.Class.extend({
 		var self = this;
 		
 		DBTypes.Stat.count({player: this.doc._id},function(err, count){
-			if(count > 7){
+			if(count > Config.maxStats){
 				DBTypes.Stat.findOne({player: self.doc._id}).sort("updated_at").exec(function(err,doc){
 					//console.log("Removed stat from: "+doc.updated_at);
 					doc.remove(function(){

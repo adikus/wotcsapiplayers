@@ -2,20 +2,25 @@ mongoose = require('mongoose')
 
 function main(){
     var Server = require('./server'),
-        App = require('./app');
+    	App = require('./app'),
+    	Config = require('./config');
         
-    mongoose.connect(process.env.MONGOHQ_URL || 'mongodb://localhost/wotcsapi');
+    mongoose.connect(process.env.MONGOHQ_URL || Config.defaultMongo);
 	
-  	server = new Server(process.env.PORT || 3000);
+  	server = new Server(process.env.PORT || Config.defaultPort);
   	app = new App();
 	
-	app.updatePlayerLists();
 	setInterval(function(){
 		app.updatePlayerLists();
-	},600000);
+	},Config.updatePlayerListInterval);
 	
 	setInterval(function(){
-	},3600000);
+		app.updateStatus();
+	},Config.updateStatusInterval);
+	
+	setInterval(function(){
+		app.updateScores();
+	},Config.updateScoreInterval);
   	
   	server.setRoute('status',function(options){
   		return app.statusGlobal(options);
@@ -31,6 +36,14 @@ function main(){
   	
   	server.setRoute('scores',function(options){
   		return app.scores(options);
+  	});
+  	
+  	server.setRoute('loaders',function(options){
+  		return app.loaderStatus(options);
+  	});
+  	
+  	server.setRoute('names',function(options){
+  		return app.translateNames(options);
   	});
 }
 
