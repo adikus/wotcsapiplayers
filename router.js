@@ -22,7 +22,9 @@ module.exports = router = cls.Class.extend({
 	    }
 
 	    var ret = {};
-	    if(this.routes[path]){
+	    if(path === ""){
+	    	ret = this.routes["status"](options);
+	    }else if(this.routes[path]){
 	    	ret = this.routes[path](options);
 	    }else{
 	    	ret = {status:'Error',error:''};

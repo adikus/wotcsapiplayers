@@ -13,6 +13,7 @@ module.exports = ClanLoader = cls.Class.extend({
 		this.players = [];
 		this.done = false;
 		this.wid = wid;
+		this.l = 99999999;
 		
 		this.deleteInterval = setInterval(function(){
 			var now = new Date(),
@@ -35,15 +36,15 @@ module.exports = ClanLoader = cls.Class.extend({
 		
 		
 		DBTypes.Player.count({clan_id: wid},function(err,count){
-			var l = count;
-			if(l == 0)self.done = true;
+			self.l = count;
+			if(self.l == 0)self.done = true;
 			DBTypes.Player.find(cond1,function(err,docs){
 				var players = _.map(docs,function(doc){var p = new Player(doc.wid);p.doc = doc;return p;});
 				_.each(players,function(player){
 					player.getData(function(data){
 						self.players.push(data);
-						l--;
-						if(l == 0)self.done = true;
+						self.l--;
+						if(self.l == 0)self.done = true;
 					});
 				});
 			});
@@ -54,12 +55,12 @@ module.exports = ClanLoader = cls.Class.extend({
 						if(player.doc.clan_id == wid){
 							player.getData(function(data){
 								self.players.push(data);
-								l--;
-								if(l == 0)self.done = true;
+								self.l--;
+								if(self.l == 0)self.done = true;
 							});
 						}else {
-							l--;
-							if(l == 0)self.done = true;
+							self.l--;
+							if(self.l == 0)self.done = true;
 						}
 					});
 				});

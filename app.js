@@ -216,7 +216,7 @@ module.exports = app = cls.Class.extend({
 	loaderStatus: function(options) {
 		var ret = [];
 		_.each(this.loaders,function(loader) {
-			ret.push({wid:loader.wid,last_access:loader.lastAccessed});
+			ret.push({wid:loader.wid,last_access:loader.lastAccessed,toBeDone:loader.l});
 		});
 		return ret;
 	},
