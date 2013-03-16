@@ -92,14 +92,14 @@ module.exports = app = cls.Class.extend({
 				waitInterval = setInterval(function(){
 					if(self.loaders[wid].isDone()){
 						clearInterval(waitInterval);
-						console.log("Returning data: "+wid);
+						console.log("Returning data(done): "+wid);
 						wait_callback(self.loaders[wid].getData(last));
 					}else{
 						waitTime -= 100;
 						console.log("Waiting: "+wid+" ("+waitTime+")");
-						if(waitTime == 0){
+						if(waitTime <= 0){
 							clearInterval(waitInterval);
-							console.log("Returning data: "+wid);
+							console.log("Returning data(wait): "+wid);
 							wait_callback(self.loaders[wid].getData(last));
 						}
 					}
@@ -113,7 +113,7 @@ module.exports = app = cls.Class.extend({
 			
 			if(self.loaders[wid]){
 				if(self.loaders[wid].isDone()){
-					console.log("Returning data: "+wid);
+					console.log("Returning data(donR): "+wid);
 					wait_callback(self.loaders[wid].getData(last));					
 				}else{
 					console.log("Waiting: "+wid);
