@@ -92,24 +92,31 @@ module.exports = app = cls.Class.extend({
 				waitInterval = setInterval(function(){
 					if(self.loaders[wid].isDone()){
 						clearInterval(waitInterval);
+						console.log("Returning data: "+wid);
 						wait_callback(self.loaders[wid].getData(last));
 					}else{
 						waitTime -= 100;
+						console.log("Waiting: "+wid+" ("+waitTime+")");
 						if(waitTime == 0){
 							clearInterval(waitInterval);
+							console.log("Returning data: "+wid);
 							wait_callback(self.loaders[wid].getData(last));
 						}
 					}
 				},100);
 			};
+			
+		console.log("Request arrived: "+wid);	
 		
 		return function(callback) {
 			wait_callback = callback;
 			
 			if(self.loaders[wid]){
 				if(self.loaders[wid].isDone()){
+					console.log("Returning data: "+wid);
 					wait_callback(self.loaders[wid].getData(last));					
 				}else{
+					console.log("Waiting: "+wid);
 					wait();
 				}
 			}else{
@@ -123,6 +130,7 @@ module.exports = app = cls.Class.extend({
 						console.log("Loader for clan "+wid+" deleted.");
 						delete self.loaders[wid];
 					});
+					console.log("Returning data: "+wid);
 					wait();
 				}
 				if(forceUpdatePlayerList){
