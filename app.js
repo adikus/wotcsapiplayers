@@ -82,7 +82,7 @@ module.exports = app = cls.Class.extend({
 	statusClan: function(options) {
 		var wait_callback = null,
 			wid = options[0],
-			self = this;
+			self = this,
 			forceLoad = options[2] == "1",
 			forceUpdatePlayerList = options[3] == "1",
 			last = options[1],
@@ -130,7 +130,7 @@ module.exports = app = cls.Class.extend({
 						console.log("Loader for clan "+wid+" deleted.");
 						delete self.loaders[wid];
 					});
-					console.log("Returning data: "+wid);
+					console.log("Waiting: "+wid);
 					wait();
 				}
 				if(forceUpdatePlayerList){
