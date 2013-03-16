@@ -3,7 +3,6 @@ var cls = require("./lib/class"),
     Player = require("./player"),
     Request = require("./request"),
     DBTypes = require("./db_types"),
-    MemberListRequest = require("./member_list_request"),
     ClanLoader = require("./clan_loader"),
     Config = require("./config");
 
@@ -181,7 +180,8 @@ module.exports = app = cls.Class.extend({
 	scores: function(options) {
 		var self = this,
 			wait_callback = null,
-			wid = options[0];
+			wid = options[0] > 0,
+			from = options[1]?options[1]*10:0;
 		
 		return function(callback) {
 			wait_callback = callback;
@@ -195,18 +195,26 @@ module.exports = app = cls.Class.extend({
 					wait_callback(ret);
 				});
 			}else{
-				DBTypes.ClanStats.find().sort("-value.SCR").limit(10).exec(function(err, docs){
+				DBTypes.ClanStats.find().sort("-value.SCR").skip(from).limit(10).exec(function(err, docs){
 					var ret = {
 						status: "ok",
 						scores: []
 					}
-					_.each(docs,function(doc){
-						var retDoc = doc.value;
-						retDoc.wid = doc._id;
-						ret.scores.push(retDoc);
+					var wids = _.map(docs,function(doc){return doc._id;}),
+						clans = docs;
+					DBTypes.Clan.find({wid:{$in:wids}}).select("wid tag").exec(function(err,docs){
+						var names = {};
+						_.each(docs,function(doc){names[doc.wid] = doc.tag;});
+						
+						_.each(clans,function(doc){
+							var retDoc = doc.value;
+							retDoc.wid = doc._id;
+							retDoc.tag = names[doc._id]?names[doc._id]:"";
+							ret.scores.push(retDoc);
+						});
+						
+						wait_callback(ret);
 					});
-										
-					wait_callback(ret);
 				});
 			}
 		}
@@ -352,5 +360,40 @@ module.exports = app = cls.Class.extend({
 				});
 			});
 		});
+	},
+	
+	vehStats: function(options) {
+		var self = this,
+			ret = {};
+		
+		return function(callback) {
+			DBTypes.Veh.find({$or:[{tier:10},{tier:8,type:4}]},function(err,docs){
+				_.each(docs,function(veh){
+					ret[veh._id] = {
+						wins: 0,
+						battles: 0,
+						count: 0,
+						name: veh.lname,
+						type: veh.type
+					};
+				});
+				var ids = _.map(docs,function(veh){return veh._id;});
+				
+				DBTypes.PlVeh.find({veh:{$in:ids}},function(err,docs){
+					_.each(docs,function(plVeh){
+						ret[plVeh.veh].wins += plVeh.wins;
+						ret[plVeh.veh].battles += plVeh.battles;
+						ret[plVeh.veh].count++;
+					});
+					
+					for(var i in ret){
+						ret[i].winrate = ret[i].wins/ret[i].battles*100;
+						ret[i].battles_average = ret[i].battles/ret[i].count;
+					}
+				
+					callback(ret);
+				});
+			});
+		};
 	},
 });

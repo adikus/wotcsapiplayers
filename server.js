@@ -17,9 +17,9 @@ module.exports = server = cls.Class.extend({
 		    	'Access-Control-Allow-Origin': '*',
 		    	'Access-Control-Allow-Headers': 'Content-Type, *'
 		    }); 
-		    this.data = '';
+		    self.data = '';
 		    request.on('data', function(chunk) {
-				this.data += chunk.toString('utf8');
+				self.data += chunk.toString('utf8');
 		    });
 		    
 		    request.on('end', function(chunk) {

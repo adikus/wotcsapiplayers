@@ -45,6 +45,10 @@ function main(){
   	server.setRoute('names',function(options){
   		return app.translateNames(options);
   	});
+  	
+  	server.setRoute('stats',function(options){
+  		return app.vehStats(options);
+  	});
 }
 
 main();
