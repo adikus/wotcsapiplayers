@@ -362,34 +362,69 @@ module.exports = app = cls.Class.extend({
 		});
 	},
 	
+	updateVehStats: function() {
+		var o = {
+			map: function () { 
+				emit(this.veh, {
+					battles: this.battles,
+					wins: this.wins,
+					count: 1
+				}); 
+			},
+			reduce: function (k, vals) { 
+				ret = {
+					battles: 0,
+					wins: 0,
+					count: 0
+				};
+				for(i in vals){
+					ret.battles += vals[i].battles;
+					ret.wins += vals[i].wins;
+					ret.count += vals[i].count;
+				}	
+				ret.winrate = ret.wins / ret.battles * 100;
+				ret.battles_average = ret.battles / ret.count;
+				return ret;
+			},
+			out:{merge: 'veh_stats'}
+		},
+		start = new Date();
+		
+		console.log("Updating vehicle statistics.");
+		
+		DBTypes.PlVeh.mapReduce(o,function (err, results) {
+			if(err)console.log(err);
+			var end = new Date(),
+				duration = end.getTime() - start.getTime();
+			console.log("Vehicle statistics updated ("+duration+" ms).");
+		});
+	},
+	
 	vehStats: function(options) {
 		var self = this,
 			ret = {};
 		
 		return function(callback) {
-			DBTypes.Veh.find({$or:[{tier:10},{tier:8,type:4}]},function(err,docs){
-				_.each(docs,function(veh){
-					ret[veh._id] = {
-						wins: 0,
-						battles: 0,
-						count: 0,
-						name: veh.lname,
-						type: veh.type
+			DBTypes.VehStats.find(function(err,docs){
+				_.each(docs,function(doc){
+					ret[doc.id] = {
+						wins: doc.value.wins,
+						battles: doc.value.battles,
+						winrate: doc.value.winrate,
+						battles_average: doc.value.battles_average,
 					};
 				});
-				var ids = _.map(docs,function(veh){return veh._id;});
-				
-				DBTypes.PlVeh.find({veh:{$in:ids}},function(err,docs){
-					_.each(docs,function(plVeh){
-						ret[plVeh.veh].wins += plVeh.wins;
-						ret[plVeh.veh].battles += plVeh.battles;
-						ret[plVeh.veh].count++;
+				DBTypes.Veh.find(function(err,docs){
+					_.each(docs,function(veh){
+						if(ret[veh._id]){
+							if(veh.tier == 10 || (veh.type == 4 && veh.tier == 8)){
+								ret[veh._id].name = veh.lname;
+								ret[veh._id].type = veh.type;
+								ret[veh._id].tier = veh.tier;
+							}
+							else delete ret[veh._id];
+						}
 					});
-					
-					for(var i in ret){
-						ret[i].winrate = ret[i].wins/ret[i].battles*100;
-						ret[i].battles_average = ret[i].battles/ret[i].count;
-					}
 				
 					callback(ret);
 				});

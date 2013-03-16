@@ -9,6 +9,10 @@ function main(){
 	
   	server = new Server(process.env.PORT || Config.defaultPort);
   	app = new App();
+  	
+  	setInterval(function(){
+		app.updateVehStats();
+	},Config.updateVehStatsInterval);
 	
 	setInterval(function(){
 		app.updatePlayerLists();

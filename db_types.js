@@ -45,6 +45,12 @@ var playerStatusSchema = mongoose.Schema({
 });
 var PlayerStatus = mongoose.model('PlayerStatus', clanStatsSchema, 'player_status');
 
+var vehStatsSchema = mongoose.Schema({ 
+	_id: 'string',
+	value: 'mixed'
+});
+var VehStats = mongoose.model('VehStats', vehStatsSchema, 'veh_stats');
+
 var playerSchema = mongoose.Schema({
 	wid: 'string',
 	name: 'string',
@@ -84,6 +90,7 @@ module.exports = DBTypes = {
 	PlVeh: PlVeh,
 	Player: PlayerDB,
 	Stat: Stat,
+	VehStats: VehStats,
 	ClanStats: ClanStats,
 	PlayerStatus: PlayerStatus
 };
