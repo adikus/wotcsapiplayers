@@ -44,6 +44,8 @@ module.exports = Stat = cls.Class.extend({
 		stats['WN7'] = Math.round(wn7*100)/100;
 		stats['EFR'] = Math.round(efr*100)/100;
 		stats['SCR'] = Math.round(efr/1200*this.score*100)/100;
+		stats['SC2'] = Math.round(wn7/1000*this.score2*100)/100;
+		stats['SC3'] = Math.round(wn7/1500*this.score3*100)/100;
 		
 		this.data = stats;
 	},

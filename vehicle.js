@@ -78,6 +78,34 @@ module.exports = Vehicle = cls.Class.extend({
 		}else return 0;
 	},
 	
+	getScore2: function(){
+		var percentage = this.wins/this.battles*100,
+			add = (percentage-40)*50;
+		if(	this.tier == 10 && this.type == 1 ){
+			return 1000+add;
+		}else if( this.tier == 10 && this.type == 2){
+			return 1000+add;
+		}else if( this.tier == 10 && this.type == 3 ){
+			return 900+add;
+		}else if( this.tier == 8 && this.type == 4 ){
+			return 900+add;
+		}else return 0;
+	},
+	
+	getScore3: function(){
+		var percentage = this.wins/this.battles*100,
+			factor = 0.00002*Math.pow(percentage,3)-0.0033*Math.pow(percentage,2)+0.234*percentage-4.7857;
+		if(	this.tier == 10 && this.type == 1 ){
+			return 1000*factor;
+		}else if( this.tier == 10 && this.type == 2){
+			return 1000*factor;
+		}else if( this.tier == 10 && this.type == 3 ){
+			return 900*factor;
+		}else if( this.tier == 8 && this.type == 4 ){
+			return 900*factor;
+		}else return 0;
+	},
+	
 	filteredData: function() {
 		return {
 					"name": this.vehDoc.name,

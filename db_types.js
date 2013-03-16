@@ -70,6 +70,8 @@ var statSchema = mongoose.Schema({
 	EXP: 'number',	
 	EFR: 'number',
 	SCR: 'number',
+	SC2: 'number',
+	SC3: 'number',
 	WN7: 'number',
 	player: { type: mongoose.Schema.Types.ObjectId, ref: 'Player' },
 	updated_at: 'date'

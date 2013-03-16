@@ -11,6 +11,8 @@ module.exports = Player = cls.Class.extend({
 		this.vehicles = [];
 		this.stats = {};
 		this.score = 0;
+		this.score2 = 0;
+		this.score3 = 0;
 		this.vl = 0;
 		this.bestTiers = [0,0,0,0,0];
 		this.best = [{tier:0,tanks:[],scouts:[]},
@@ -63,6 +65,8 @@ module.exports = Player = cls.Class.extend({
 			this.stats.pid = this.doc._id;
 			this.stats.averageTier = this.averageTier;
 			this.stats.score = this.score;
+			this.stats.score2 = this.score2;
+			this.stats.score3 = this.score3;
 			this.stats.parseData(playerData);
 			this.stats.save(function(err){
 				if(err)console.log(err);
@@ -90,6 +94,8 @@ module.exports = Player = cls.Class.extend({
 			tierTotal += _.last(ret).tier*_.last(ret).battles;
 			if(tierNum > 0)this.averageTier = tierTotal/tierNum;else this.averageTier = 9e99;
 			this.score += _.last(ret).getScore();
+			this.score2 += _.last(ret).getScore2();
+			this.score3 += _.last(ret).getScore3();
 			if(this.bestTiers[_.last(ret).type] < _.last(ret).tier)this.bestTiers[_.last(ret).type] = _.last(ret).tier;
 		}
 		
