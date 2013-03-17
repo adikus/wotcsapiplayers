@@ -82,7 +82,7 @@ module.exports = app = cls.Class.extend({
 		var wait_callback = null,
 			wid = options[0],
 			self = this,
-			forceLoad = options[2] == "1",
+			forceLoad = options[2] != "0"?options[2]:false,
 			forceUpdatePlayerList = options[3] == "1",
 			last = options[1],
 			waitTime = Config.loaderWaitTime,
@@ -105,7 +105,7 @@ module.exports = app = cls.Class.extend({
 		return function(callback) {
 			wait_callback = callback;
 			
-			if(self.loaders[wid]){
+			if(self.loaders[wid] && !forceLoad){
 				if(self.loaders[wid].isDone()){
 					wait_callback(self.loaders[wid].getData(last));					
 				}else{
@@ -114,11 +114,12 @@ module.exports = app = cls.Class.extend({
 			}else{
 				var newLoader = function(){
 					console.log("Creating loader for clan "+wid);
-					self.loaders[wid] = new ClanLoader(wid,forceLoad);
+					self.loaders[wid] = new ClanLoader(wid,forceLoad == "1");
 					self.loaders[wid].setPlayerLoadFunction(function(player,callback){
 						self.loadPlayer(player,callback);
 					});
 					self.loaders[wid].deleteCallback(function(){
+						console.log("Deleting loader for clan "+wid);
 						delete self.loaders[wid];
 					});
 					wait();
@@ -134,8 +135,8 @@ module.exports = app = cls.Class.extend({
 	
 	updateScores: function() {
 		var o = {
-			map: function () { 
-				emit(this.clan_id, {
+			map: function () {
+				emit(parseInt(this.clan_id), {
 					EFR: this.stats_current?this.stats_current.EFR:0,
 					SCR: this.stats_current?this.stats_current.SCR:0,
 					WIN: this.stats_current?this.stats_current.WIN:0,
@@ -180,8 +181,9 @@ module.exports = app = cls.Class.extend({
 	scores: function(options) {
 		var self = this,
 			wait_callback = null,
-			wid = options[0] > 0,
-			from = options[1]?options[1]*10:0;
+			wid = options[0] != "0"?options[0]:false,
+			region = options[1]?options[1]:-1;
+			from = options[2]?options[2]*10:0;
 		
 		return function(callback) {
 			wait_callback = callback;
@@ -195,7 +197,22 @@ module.exports = app = cls.Class.extend({
 					wait_callback(ret);
 				});
 			}else{
-				DBTypes.ClanStats.find().sort("-value.SCR").skip(from).limit(10).exec(function(err, docs){
+				var cond = {};
+				switch(region){
+				case "0":
+					cond._id = {$lt:500000000,$gt:0};
+					break;
+				case "1":
+					cond._id = {$lt:1000000000,$gt:500000000};
+					break;
+				case "2":
+					cond._id = {$lt:2500000000,$gt:1000000000};
+					break;
+				case "4":
+					cond._id = {$gt:2500000000};
+					break;
+				}
+				DBTypes.ClanStats.find(cond).sort("-value.SCR").skip(from).limit(10).exec(function(err, docs){
 					var ret = {
 						status: "ok",
 						scores: []
@@ -221,9 +238,9 @@ module.exports = app = cls.Class.extend({
 	},
 	
 	loaderStatus: function(options) {
-		var ret = [];
+		var ret = {status:"ok",loaders:[]};
 		_.each(this.loaders,function(loader) {
-			ret.push({wid:loader.wid,last_access:loader.lastAccessed,to_be_done:loader.l});
+			ret.loaders.push({wid:loader.wid,last_access:loader.lastAccessed,to_be_done:loader.l,error:loader.errors});
 		});
 		return ret;
 	},
@@ -231,11 +248,11 @@ module.exports = app = cls.Class.extend({
 	translateNames: function(options) {
 		return function(callback) {
 			var wids = options,
-				ret = {};
+				ret = {status:"ok",players:{}};
 				
 			DBTypes.Player.find({wid:{$in:wids}}).select('wid name').exec(function(err,docs){
 				_.each(docs,function(player){
-					ret[player.wid] = player.name;
+					ret.players[player.wid] = player.name;
 				});
 				
 				callback(ret);
@@ -247,8 +264,9 @@ module.exports = app = cls.Class.extend({
 		req = new Request('accounts',player.wid,'1.8');
 			
 		req.onSuccess(function(data){
-			player.parseData(data);
-			player.save(function(err){
+			if(!player.parseData(data)){
+				callback({status:"error",error:"parse error",wid:player.wid});
+			}else player.save(function(err){
 				//console.log('Loaded: '+player.wid);
 				callback();
 			});
@@ -256,7 +274,7 @@ module.exports = app = cls.Class.extend({
 		
 		req.onTimeout(function(){
 			console.log('Timeout: '+player.wid);
-			wait_callback({status:"error",error:"timeout"});
+			callback({status:"error",error:"timeout"});
 		});
 	},
 	
@@ -272,7 +290,10 @@ module.exports = app = cls.Class.extend({
 			
 			player.find(function(){
 				if(player.getUpdatedAt() < now.getTime() - 12*3600*1000 || forceLoad){
-					self.loadPlayer(player,function(){player.getStats(wait_callback);});
+					self.loadPlayer(player,function(err){
+						if(err)wait_callback({status:"error"});
+						else player.getStats(wait_callback);
+					});
 				}else player.getStats(wait_callback);
 			},true);
 				
@@ -292,7 +313,10 @@ module.exports = app = cls.Class.extend({
 			
 			player.find(function(){
 				if(player.getUpdatedAt() < now.getTime() - 12*3600*1000 || forceLoad){
-					self.loadPlayer(player,function(){player.getData(wait_callback)});
+					self.loadPlayer(player,function(err){
+						if(err)wait_callback({status:"error"});
+						else player.getData(wait_callback);
+					});
 				}else player.getData(wait_callback);
 			},true);
 		}
@@ -312,8 +336,17 @@ module.exports = app = cls.Class.extend({
 							status: "Not loaded",
 							updated_at: 0
 						});
-						player.save(function(err){
-							if(err)console.log(err);
+						DBTypes.Player.findOne({wid:wid},function(err,doc){
+							if(!doc){
+								player.save(function(err){
+									if(err)console.log(err);
+								});
+							}else{
+								doc.clan_id = clan.wid;
+								doc.save(function(err){
+									if(err)console.log(err);
+								});
+							}
 						});
 						count++;
 					}
@@ -326,7 +359,7 @@ module.exports = app = cls.Class.extend({
 		
 		if(clan.members){
 			if(!player_ids){
-				DBTypes.Player.find({clan_id: clan.wid}).select('wid').exec(function(err, docs){
+				DBTypes.Player.find({clan_id: "1000003204"}).select("wid").exec(function(err, docs){
 					var wids = _.map(docs,function(player){return player.wid;});
 					compareIds(wids);
 				});
@@ -402,12 +435,12 @@ module.exports = app = cls.Class.extend({
 	
 	vehStats: function(options) {
 		var self = this,
-			ret = {};
+			ret = {status:"ok",vehs:{}};
 		
 		return function(callback) {
 			DBTypes.VehStats.find(function(err,docs){
 				_.each(docs,function(doc){
-					ret[doc.id] = {
+					ret.vehs[doc.id] = {
 						wins: doc.value.wins,
 						battles: doc.value.battles,
 						winrate: doc.value.winrate,
@@ -416,13 +449,13 @@ module.exports = app = cls.Class.extend({
 				});
 				DBTypes.Veh.find(function(err,docs){
 					_.each(docs,function(veh){
-						if(ret[veh._id]){
+						if(ret.vehs[veh._id]){
 							if(veh.tier == 10 || (veh.type == 4 && veh.tier == 8)){
-								ret[veh._id].name = veh.lname;
-								ret[veh._id].type = veh.type;
-								ret[veh._id].tier = veh.tier;
+								ret.vehs[veh._id].name = veh.lname;
+								ret.vehs[veh._id].type = veh.type;
+								ret.vehs[veh._id].tier = veh.tier;
 							}
-							else delete ret[veh._id];
+							else delete ret.vehs[veh._id];
 						}
 					});
 				

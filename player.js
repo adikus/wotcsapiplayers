@@ -45,10 +45,17 @@ module.exports = Player = cls.Class.extend({
 	parseData: function(data){
 		var self = this;
 		
-		playerData = JSON.parse(data);
+		try{
+	        playerData = JSON.parse(data);
+	    }catch(e){
+	        //console.log(e);
+	        return false;
+	    }
 		
 		if(playerData.status == "error"){
 			console.log(playerData.error+" - "+playerData.status_code+" - "+this.id);
+			this.doc.status = playerData.status_code;
+			return true;
 		}else{
 			this.saved.main = false;
 			
@@ -81,6 +88,7 @@ module.exports = Player = cls.Class.extend({
 			this.doc.name = playerData.data.name;
 			this.doc.status = 'Loaded';
 			this.doc.updated_at = new Date();
+			return true;
 		}
 	},
 	

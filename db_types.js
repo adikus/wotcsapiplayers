@@ -5,7 +5,7 @@ var clanSchema = mongoose.Schema({
 	tag: 'string',
 	description: '',
 	motto: 'string',
-	wid: 'string',
+	wid: {type:'string',index: {unique: true, dropDups: true}},
 	region: 'number',
 	status: 'string',
 	locked: 'number',
@@ -16,7 +16,7 @@ var clanSchema = mongoose.Schema({
 var Clan = mongoose.model('Clan', clanSchema);
 
 var vehSchema = mongoose.Schema({ 
-	name: 'string',
+	name: {type:'string',index: {unique: true, dropDups: true}},
 	lname: 'string',
 	tier: 'number',
 	nation: 'number',
@@ -34,7 +34,7 @@ var plvehSchema = mongoose.Schema({
 var PlVeh = mongoose.model('Plveh', plvehSchema);
 
 var clanStatsSchema = mongoose.Schema({ 
-	_id: 'string',
+	_id: 'number',
 	value: 'mixed'
 });
 var ClanStats = mongoose.model('ClanStats', clanStatsSchema, 'clan_stats');
@@ -45,14 +45,14 @@ var playerStatusSchema = mongoose.Schema({
 });
 var PlayerStatus = mongoose.model('PlayerStatus', clanStatsSchema, 'player_status');
 
-var vehStatsSchema = mongoose.Schema({ 
+var vehStatsSchema = mongoose.Schema({
 	_id: 'string',
 	value: 'mixed'
 });
 var VehStats = mongoose.model('VehStats', vehStatsSchema, 'veh_stats');
 
 var playerSchema = mongoose.Schema({
-	wid: 'string',
+	wid: {type:'string',index: {unique: true, dropDups: true}},
 	name: 'string',
 	status: 'string',
 	locked: 'number',
