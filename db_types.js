@@ -5,7 +5,7 @@ var clanSchema = mongoose.Schema({
 	tag: 'string',
 	description: '',
 	motto: 'string',
-	wid: {type:'string',index: {unique: true, dropDups: true}},
+	wid: {type:'number',index: {unique: true, dropDups: true}},
 	region: 'number',
 	status: 'string',
 	locked: 'number',

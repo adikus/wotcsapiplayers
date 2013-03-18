@@ -178,65 +178,6 @@ module.exports = app = cls.Class.extend({
 		});
 	},
 	
-	scores: function(options) {
-		var self = this,
-			wait_callback = null,
-			wid = options[0] != "0"?options[0]:false,
-			region = options[1]?options[1]:-1;
-			from = options[2]?options[2]*10:0;
-		
-		return function(callback) {
-			wait_callback = callback;
-			
-			if(wid){
-				DBTypes.ClanStats.findOne({_id:wid}).sort("-value.SCR").exec(function(err, doc){
-					var ret = {
-						status: "ok",
-						scores: doc.value
-					}
-					wait_callback(ret);
-				});
-			}else{
-				var cond = {};
-				switch(region){
-				case "0":
-					cond._id = {$lt:500000000,$gt:0};
-					break;
-				case "1":
-					cond._id = {$lt:1000000000,$gt:500000000};
-					break;
-				case "2":
-					cond._id = {$lt:2500000000,$gt:1000000000};
-					break;
-				case "4":
-					cond._id = {$gt:2500000000};
-					break;
-				}
-				DBTypes.ClanStats.find(cond).sort("-value.SCR").skip(from).limit(10).exec(function(err, docs){
-					var ret = {
-						status: "ok",
-						scores: []
-					}
-					var wids = _.map(docs,function(doc){return doc._id;}),
-						clans = docs;
-					DBTypes.Clan.find({wid:{$in:wids}}).select("wid tag").exec(function(err,docs){
-						var names = {};
-						_.each(docs,function(doc){names[doc.wid] = doc.tag;});
-						
-						_.each(clans,function(doc){
-							var retDoc = doc.value;
-							retDoc.wid = doc._id;
-							retDoc.tag = names[doc._id]?names[doc._id]:"";
-							ret.scores.push(retDoc);
-						});
-						
-						wait_callback(ret);
-					});
-				});
-			}
-		}
-	},
-	
 	loaderStatus: function(options) {
 		var ret = {status:"ok",loaders:[]};
 		_.each(this.loaders,function(loader) {
@@ -327,7 +268,7 @@ module.exports = app = cls.Class.extend({
 			start = new Date(),
 			count = 0,
 			compareIds = function(player_ids) {
-				_.each(clan.members[0],function(wid){
+				_.each(clan.members,function(wid){
 					if(!_.contains(player_ids,wid)){
 						var player = new DBTypes.Player({
 							wid: wid,
@@ -359,7 +300,7 @@ module.exports = app = cls.Class.extend({
 		
 		if(clan.members){
 			if(!player_ids){
-				DBTypes.Player.find({clan_id: "1000003204"}).select("wid").exec(function(err, docs){
+				DBTypes.Player.find({clan_id: clan.wid}).select("wid").exec(function(err, docs){
 					var wids = _.map(docs,function(player){return player.wid;});
 					compareIds(wids);
 				});
@@ -379,7 +320,7 @@ module.exports = app = cls.Class.extend({
 		console.log("Updateing player list.");
 		time.setTime(time.getTime()-5*3600*1000);
 		
-		DBTypes.Clan.find({/*players_updated_at:{$not:{$gt:time}}*/}).limit(100).sort("players_updated_at").exec(function(err,docs){
+		DBTypes.Clan.find({}).limit(100).sort("players_updated_at").exec(function(err,docs){
 			var wids = _.map(docs,function(clan){return clan.wid;}),
 				clans = docs;
 			DBTypes.Player.find({clan_id:{$in:wids}}).select('wid clan_id').exec(function(err,docs){

@@ -10,7 +10,7 @@ function main(){
 	
   	server = new Server(process.env.PORT || Config.defaultPort);
   	app = new App();
-
+    
   	setInterval(function(){
 		app.updateVehStats();
 	},Config.updateVehStatsInterval);
@@ -37,10 +37,6 @@ function main(){
   	
   	server.setRoute('player',function(options){
   		return app.statusPlayer(options);
-  	});
-  	
-  	server.setRoute('scores',function(options){
-  		return app.scores(options);
   	});
   	
   	server.setRoute('loaders',function(options){
