@@ -94,7 +94,7 @@ module.exports = Vehicle = cls.Class.extend({
 	
 	getScore3: function(){
 		var percentage = this.wins/this.battles*100,
-			factor = 0.00002*Math.pow(percentage,3)-0.0033*Math.pow(percentage,2)+0.234*percentage-4.7857;
+			factor = (percentage-35)/15*Math.min(this.battles,75)/75;
 		if(	this.tier == 10 && this.type == 1 ){
 			return 1000*factor;
 		}else if( this.tier == 10 && this.type == 2){

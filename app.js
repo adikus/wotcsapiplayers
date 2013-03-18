@@ -139,6 +139,7 @@ module.exports = app = cls.Class.extend({
 				emit(parseInt(this.clan_id), {
 					EFR: this.stats_current?this.stats_current.EFR:0,
 					SCR: this.stats_current?this.stats_current.SCR:0,
+					SC3: this.stats_current?this.stats_current.SC3:0,
 					WIN: this.stats_current?this.stats_current.WIN:0,
 					GPL: this.stats_current?this.stats_current.GPL:0,
 					WN7: this.stats_current?this.stats_current.WN7:0
@@ -149,11 +150,13 @@ module.exports = app = cls.Class.extend({
 					WIN: 0,
 					GPL: 0,
 					SCR: 0,
+					SC3: 0,
 					EFR: 0,
 					WN7: 0
 				};
 				for(i in vals){
 					ret.SCR += vals[i].SCR;
+					ret.SC3 += vals[i].SC3;
 					ret.EFR += vals[i].EFR;
 					ret.WIN += vals[i].WIN;
 					ret.GPL += vals[i].GPL;
