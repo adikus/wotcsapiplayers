@@ -35,6 +35,7 @@ module.exports = app = cls.Class.extend({
 			
 			DBTypes.PlayerStatus.remove(function(){
 				_.each(times,function(time,key){
+					if(key > 0)
 					DBTypes.Player.count({updated_at:{$gt:time}},function(err, count){
 						playerStatus = new DBTypes.PlayerStatus({_id:key,value:count});
 						playerStatus.save(function(){
