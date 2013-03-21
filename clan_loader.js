@@ -43,6 +43,7 @@ module.exports = ClanLoader = cls.Class.extend({
 				var players = _.map(docs,function(doc){var p = new Player(doc.wid);p.doc = doc;return p;});
 				_.each(players,function(player){
 					player.getData(function(data){
+						data.saved_at = (new Date()).getTime();
 						self.players.push(data);
 						self.l--;
 						if(self.l == 0)self.done = true;
@@ -56,6 +57,7 @@ module.exports = ClanLoader = cls.Class.extend({
 						if(!err){
 							if(player.doc.clan_id == wid){
 								player.getData(function(data){
+									data.saved_at = (new Date()).getTime();
 									self.players.push(data);
 									self.l--;
 									if(self.l == 0)self.done = true;
@@ -87,19 +89,19 @@ module.exports = ClanLoader = cls.Class.extend({
 	
 	getData: function(last) {
 		var ret = {members:[]},
-			updated_last = 0,
+			saved_last = 0,
 			last = last?last:0;
 		
 		_.each(this.players,function(player){
-			var time = new Date(player.updated_at);
+			var time = new Date(player.saved_at);
 			if(time.getTime() > last){
-				if(time.getTime() > updated_last)updated_last = time.getTime();
+				if(time.getTime() > saved_last)saved_last = time.getTime();
 				ret.members.push(player);
 			}
 		});
 		
 		ret.status = "ok";
-		ret.last = updated_last;
+		ret.last = saved_last;
 		ret.is_done = this.done;
 		
 		return ret;

@@ -90,14 +90,15 @@ module.exports = app = cls.Class.extend({
 			waitInterval = null,
 			wait = function() {
 				waitInterval = setInterval(function(){
-					if(self.loaders[wid].isDone()){
+					if(self.loaders[wid] && self.loaders[wid].isDone()){
 						clearInterval(waitInterval);
 						wait_callback(self.loaders[wid].getData(last));
 					}else{
 						waitTime -= 100;
 						if(waitTime <= 0){
 							clearInterval(waitInterval);
-							wait_callback(self.loaders[wid].getData(last));
+							if(self.loaders[wid])wait_callback(self.loaders[wid].getData(last));
+							else wait_callback({members:[],status:"loader deleted",last:0,is_done:true});
 						}
 					}
 				},100);
