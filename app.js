@@ -88,7 +88,7 @@ module.exports = app = cls.Class.extend({
 			last = options[1],
 			waitTime = Config.loaderWaitTime,
 			waitInterval = null,
-			wait = function() {
+			wait = function(){
 				waitInterval = setInterval(function(){
 					if(self.loaders[wid] && self.loaders[wid].isDone()){
 						clearInterval(waitInterval);
