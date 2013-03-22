@@ -135,6 +135,79 @@ module.exports = app = cls.Class.extend({
 		}
 	},
 	
+	playerStats: function(options) {
+		return function(callback) {
+			var ret = {lengths:{},stats:{}};
+			DBTypes.PlayerStats.find(function(err,docs){
+				_.each(docs,function(doc){
+					var t = doc._id.split(":")[0],
+						v = parseFloat(doc._id.split(":")[1])
+					if(!ret.stats[t]){
+						ret.stats[t] = {};
+						ret.lengths[t] = 0;
+					}
+					ret.lengths[t]++;
+					ret.stats[t][v] = doc.value;
+				});
+				callback(ret);
+			});
+		}
+	},
+	
+	updatePlayerStats:function() {
+		var o = {
+			map: function () {
+				if(this.stats_current){ 
+					var GPL = Math.round(this.stats_current.GPL/100)*100;
+					emit("GPL:"+GPL,1);  
+					var WIN = Math.round(this.stats_current.WIN/this.stats_current.GPL*10000)/100;
+					emit("WIN:"+WIN,1); 
+					var SUR = Math.round(this.stats_current.SUR/this.stats_current.GPL*10000)/100;
+					emit("SUR:"+SUR,1); 
+					var FRG = Math.round(this.stats_current.FRG/this.stats_current.GPL*100)/100;
+					emit("FRG:"+FRG,1);
+					var KD = Math.round(this.stats_current.FRG/(this.stats_current.GPL-this.stats_current.SUR)*100)/100;
+					emit("KD:"+KD,1);
+					var SPT = Math.round(this.stats_current.SPT/this.stats_current.GPL*100)/100;
+					emit("SPT:"+SPT,1);
+					var DMG = Math.round(this.stats_current.DMG/this.stats_current.GPL/50)*50;
+					emit("DMG:"+DMG,1);
+					var CPT = Math.round(this.stats_current.CPT/this.stats_current.GPL*100)/100;
+					emit("CPT:"+CPT,1);
+					var DPT = Math.round(this.stats_current.DPT/this.stats_current.GPL*100)/100;
+					emit("DPT:"+DPT,1);
+					var EXP = Math.round(this.stats_current.EXP/this.stats_current.GPL/10)*10;
+					emit("EXP:"+EXP,1);
+					var EFR = Math.round(this.stats_current.EFR/50)*50;
+					emit("EFR:"+EFR,1);
+					var WN7 = Math.round(this.stats_current.WN7/50)*50;
+					emit("WN7:"+WN7,1);
+					var SC3 = Math.round(this.stats_current.SC3/100)*100;
+					emit("SC3:"+SC3,1);
+				}
+			},
+			reduce: function (k, vals) { 
+				var ret = 0;
+				for(i in vals){
+					ret += vals[i];
+				}
+				return ret;
+			},
+			out:{merge: 'player_stats'}
+		},
+		start = new Date();
+		
+		console.log("Updating player stats.");
+		
+		DBTypes.Player.mapReduce(o,function (err, results) {
+			if(err)console.log(err);
+			var end = new Date(),
+				duration = end.getTime() - start.getTime();
+			console.log("Player stats updated ("+duration+" ms).");
+		});
+	},
+	
+	
 	updateScores: function() {
 		var o = {
 			map: function () {

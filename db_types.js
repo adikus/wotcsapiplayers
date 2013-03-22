@@ -33,6 +33,12 @@ var plvehSchema = mongoose.Schema({
 });
 var PlVeh = mongoose.model('Plveh', plvehSchema);
 
+var playerStatsSchema = mongoose.Schema({ 
+	_id: 'string',
+	value: 'number'
+});
+var PlayerStats = mongoose.model('PlayerStats', playerStatsSchema, 'player_stats');
+
 var clanStatsSchema = mongoose.Schema({ 
 	_id: 'number',
 	value: 'mixed'
@@ -92,5 +98,6 @@ module.exports = DBTypes = {
 	Stat: Stat,
 	VehStats: VehStats,
 	ClanStats: ClanStats,
+	PlayerStats: PlayerStats,
 	PlayerStatus: PlayerStatus
 };

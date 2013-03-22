@@ -7,7 +7,7 @@ function main(){
     	Config = require('./config');
         
     mongoose.connect(process.env.MONGOHQ_URL || Config.defaultMongo, { server: { poolSize: 25 }});
-	
+    
   	server = new Server(process.env.PORT || Config.defaultPort);
   	app = new App();
     
@@ -26,6 +26,10 @@ function main(){
 	setInterval(function(){
 		app.updateScores();
 	},Config.updateScoreInterval);
+	
+	setInterval(function(){
+		app.updatePlayerStats();
+	},Config.updatePlayerStatsInterval);
   	
   	server.setRoute('status',function(options){
   		return app.statusGlobal(options);
@@ -49,6 +53,10 @@ function main(){
   	
   	server.setRoute('stats',function(options){
   		return app.vehStats(options);
+  	});
+  	
+  	server.setRoute('player_stats',function(options){
+  		return app.playerStats(options);
   	});
 }
 
