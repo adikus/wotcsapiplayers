@@ -148,7 +148,7 @@ module.exports = app = cls.Class.extend({
 						ret.counts[t] = 0;
 					}
 					ret.lengths[t]++;
-					ret.lengths[t] += doc.value;
+					ret.counts[t] += doc.value;
 					ret.stats[t][v] = doc.value;
 				});
 				callback(ret);
