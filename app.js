@@ -195,7 +195,7 @@ module.exports = app = cls.Class.extend({
 				}
 				return ret;
 			},
-			out:{merge: 'player_stats'}
+			out:{replace: 'player_stats'}
 		},
 		start = new Date();
 		
