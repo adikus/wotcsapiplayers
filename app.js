@@ -79,6 +79,14 @@ module.exports = app = cls.Class.extend({
 		}
 	},
 	
+	busyLoaders: function(options) {
+		var ret = 0;
+		_.each(this.loaders,function(loader){
+			ret += loader.l > 0?1:0;
+		});
+		return ret;
+	},
+	
 	statusClan: function(options) {
 		var wait_callback = null,
 			wid = options[0],
@@ -114,6 +122,10 @@ module.exports = app = cls.Class.extend({
 					wait();
 				}
 			}else{
+				if(self.busyLoaders() >= Config.maxBusyLoaders){
+					callback({status:"wait"});
+					return false;
+				}
 				var newLoader = function(){
 					console.log("Creating loader for clan "+wid);
 					self.loaders[wid] = new ClanLoader(wid,forceLoad == "1");
