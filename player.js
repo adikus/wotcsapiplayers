@@ -75,10 +75,10 @@ module.exports = Player = cls.Class.extend({
 			this.stats.score2 = this.score2;
 			this.stats.score3 = this.score3;
 			this.stats.parseData(playerData);
-			this.stats.save(function(err){
+			/*this.stats.save(function(err){
 				if(err)console.log(err);
 				self.removeOldStats();
-			});
+			});*/
 			this.doc.stats_current = this.stats.data;
 			this.doc.markModified('stats_current');
 			
