@@ -271,8 +271,12 @@ module.exports = app = cls.Class.extend({
 	},
 	
 	loaderStatus: function(options) {
-		var ret = {status:"ok",loaders:[]};
+		var ret = {status:"ok",loaders:[]},
+			r = 0,
+			s = 0;
 		_.each(this.loaders,function(loader) {
+			r += loader.reqsP;
+			s += loader.savesP;
 			ret.loaders.push({
 				wid:loader.wid,
 				created:loader.created,
@@ -282,6 +286,8 @@ module.exports = app = cls.Class.extend({
 				saves_pending:loader.savesP,
 				error:loader.errors});
 		});
+		ret.reqs_pending_total = r;
+		ret.saves_pending_total = s;
 		return ret;
 	},
 	
