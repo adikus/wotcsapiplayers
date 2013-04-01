@@ -129,8 +129,8 @@ module.exports = app = cls.Class.extend({
 				var newLoader = function(){
 					console.log("Creating loader for clan "+wid);
 					self.loaders[wid] = new ClanLoader(wid,forceLoad == "1");
-					self.loaders[wid].setPlayerLoadFunction(function(player,callback){
-						self.loadPlayer(player,callback);
+					self.loaders[wid].setPlayerLoadFunction(function(player,callback,beforeSave){
+						self.loadPlayer(player,callback,beforeSave);
 					});
 					self.loaders[wid].deleteCallback(function(){
 						console.log("Deleting loader for clan "+wid);
@@ -273,7 +273,14 @@ module.exports = app = cls.Class.extend({
 	loaderStatus: function(options) {
 		var ret = {status:"ok",loaders:[]};
 		_.each(this.loaders,function(loader) {
-			ret.loaders.push({wid:loader.wid,last_access:loader.lastAccessed,to_be_done:loader.l,error:loader.errors});
+			ret.loaders.push({
+				wid:loader.wid,
+				created:loader.created,
+				last_access:loader.lastAccessed,
+				to_be_done:loader.l,
+				reqs_pending:loader.reqsP,
+				saves_pending:loader.savesP,
+				error:loader.errors});
 		});
 		return ret;
 	},
@@ -293,16 +300,20 @@ module.exports = app = cls.Class.extend({
 		}
 	},
 	
-	loadPlayer: function(player,callback) {
+	loadPlayer: function(player,callback,beforeSave) {
 		req = new Request('accounts',player.wid,'1.8');
 			
 		req.onSuccess(function(data){
 			if(!player.parseData(data)){
 				callback({status:"error",error:"parse error",wid:player.wid});
-			}else player.save(function(err){
-				//console.log('Loaded: '+player.wid);
-				callback();
-			});
+			}else{
+				if(beforeSave)beforeSave();
+				player.save(function(err){
+					if(err)console.log(err);
+					//console.log('Loaded: '+player.wid);
+					callback();
+				});
+			}
 		});
 		
 		req.onTimeout(function(){

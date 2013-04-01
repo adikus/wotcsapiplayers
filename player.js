@@ -53,8 +53,9 @@ module.exports = Player = cls.Class.extend({
 	    }
 		
 		if(playerData.status == "error"){
-			console.log(playerData.error+" - "+playerData.status_code+" - "+this.id);
+			console.log(playerData.error+" - "+playerData.status_code+" - "+this.wid);
 			this.doc.status = playerData.status_code;
+			this.doc.updated_at = new Date();
 			return true;
 		}else{
 			this.saved.main = false;
@@ -165,7 +166,7 @@ module.exports = Player = cls.Class.extend({
 	},
 	
 	allSaved: function() {
-		return this.saved.main && this.saved.vehs && this.saved.stats;
+		return this.saved.main && this.saved.vehs /*&& this.saved.stats*/;
 	},
 	
 	save: function(callback){

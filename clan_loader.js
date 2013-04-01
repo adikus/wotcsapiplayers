@@ -15,6 +15,9 @@ module.exports = ClanLoader = cls.Class.extend({
 		this.wid = wid;
 		this.l = 99999999;
 		this.errors = [];
+		this.reqsP = 0;
+		this.savesP = 0;
+		this.created = new Date();
 		
 		this.deleteInterval = setInterval(function(){
 			var now = new Date(),
@@ -53,8 +56,11 @@ module.exports = ClanLoader = cls.Class.extend({
 			DBTypes.Player.find(cond2,function(err,docs){
 				var players = _.map(docs,function(doc){var p = new Player(doc.wid);p.doc = doc;return p;});
 				_.each(players,function(player){
+					self.reqsP++;
 					self.loadPlayer(player,function(err){
+						self.reqsP--;
 						if(!err){
+							self.savesP--;
 							if(player.doc.clan_id == wid){
 								player.getData(function(data){
 									data.saved_at = (new Date()).getTime();
@@ -72,7 +78,7 @@ module.exports = ClanLoader = cls.Class.extend({
 							self.l--;
 							if(self.l == 0)self.done = true;
 						}
-					});
+					},function(){self.savesP++;});
 				});
 			});
 		});
