@@ -58,6 +58,10 @@ function main(){
   	server.setRoute('player_stats',function(options){
   		return app.playerStats(options);
   	});
+  	
+  	server.setRoute('set_sim',function(options){
+  		return app.setSimultaneousReqs(options);
+  	});
 }
 
 main();

@@ -4,12 +4,21 @@ var cls = require("./lib/class"),
     Request = require("./request"),
     DBTypes = require("./db_types"),
     ClanLoader = require("./clan_loader"),
-    Config = require("./config");
-
-module.exports = app = cls.Class.extend({
+    Config = require("./config"),
+    ReqManager = require("./req_manager");
+    
+module.exports = App = cls.Class.extend({
 	init: function(){
 		console.log('Initialising app');
 		this.loaders = {};
+		this.rm = new ReqManager(Config.simultaneousReqs);
+	},
+	
+	setSimultaneousReqs: function(options){
+		if(options[0]){
+			this.rm.setSimultaneous(options[0]);
+			return {status:"ok"};
+		} else return {status:"error", error:"Number not defined"};
 	},
 	
 	updateStatus: function() {
@@ -87,7 +96,80 @@ module.exports = app = cls.Class.extend({
 		return ret;
 	},
 	
+	createLoader: function(wid, force) {
+		var self = this;
+		
+		console.log("Creating loader for clan "+wid);
+		this.loaders[wid] = new ClanLoader(wid);
+		this.loaders[wid].setPlayerLoadFunction(function(player,callback,beforeSave){
+			self.loadPlayer(player,callback,beforeSave);
+		});
+		this.loaders[wid].start(force);
+		this.loaders[wid].deleteCallback(function(){
+			console.log("Deleting loader for clan "+wid);
+			delete self.loaders[wid];
+		});
+	},
+	
+	onLoaderReady: function(wid, force, retry, forceUpdatePlayerList, callback, ready_callback) {
+		var self = this;
+		
+		if(this.loaders[wid]){
+			if(retry && this.loaders[wid].isDone())this.loaders[wid].start(force);
+			ready_callback();
+		}else{
+			if(forceUpdatePlayerList){
+				DBTypes.Clan.findOne({wid:wid},function(err,doc){
+					self.updatePlayerListForClan(doc,false,function(){
+						self.createLoader(wid, force);
+						ready_callback();
+					});
+				});
+			} else {
+				self.createLoader(wid, force);
+				ready_callback();
+			}
+		}
+	},
+	
+	waitForLoader: function(callback, wid, last){
+		var self = this,
+			waitTime = Config.loaderWaitTime,
+			waitInterval = setInterval(function(){
+			if(self.loaders[wid] && self.loaders[wid].isDone()){
+				clearInterval(waitInterval);
+				callback(self.loaders[wid].getData(last));
+			}else{
+				waitTime -= 100;
+				if(waitTime <= 0){
+					clearInterval(waitInterval);
+					if(self.loaders[wid])callback(self.loaders[wid].getData(last));
+					else wait_callback({members:[],status:"loader deleted",last:0,is_done:true});
+				}
+			}
+		},100);
+	},
+	
 	statusClan: function(options) {
+		var self = this,
+			wid = options[0],
+			force = options["f"] == "true"?true:false,
+			retry = options["r"] == "true"?true:false,
+			forceUpdatePlayerList = options["upl"] == "true"?true:false,
+			last =  options["l"]?options["l"]:0;
+			
+		return function(callback) {
+			self.onLoaderReady(wid,force,retry,forceUpdatePlayerList,callback,function(){
+				if(self.loaders[wid].isDone()){
+					callback(self.loaders[wid].getData(last));					
+				}else{
+					self.waitForLoader(callback,wid,last);
+				}
+			});
+		};
+	},
+	
+	stuff: function() {	
 		var wait_callback = null,
 			wid = options[0],
 			self = this,
@@ -271,7 +353,7 @@ module.exports = app = cls.Class.extend({
 	},
 	
 	loaderStatus: function(options) {
-		var ret = {status:"ok",loaders:[]},
+		var ret = {status:"ok",reqs_pending_total:0,saves_pending_total:0,speed:0,average_req_time:0,loaders:[]},
 			r = 0,
 			s = 0;
 		_.each(this.loaders,function(loader) {
@@ -286,8 +368,10 @@ module.exports = app = cls.Class.extend({
 				saves_pending:loader.savesP,
 				error:loader.errors});
 		});
+		ret.speed = Math.round(this.rm.speed()*100)/100 + " req/s";
 		ret.reqs_pending_total = r;
 		ret.saves_pending_total = s;
+		ret.average_req_time = Math.round(this.rm.getAverageTime()*100)/100 + " ms";
 		return ret;
 	},
 	
@@ -307,22 +391,17 @@ module.exports = app = cls.Class.extend({
 	},
 	
 	loadPlayer: function(player,callback,beforeSave) {
-		req = new Request('accounts',player.wid,'1.8');
-			
-		req.onSuccess(function(data){
+		this.rm.addReq('accounts',player.wid,function(data){
 			if(!player.parseData(data)){
 				callback({status:"error",error:"parse error",wid:player.wid});
 			}else{
 				if(beforeSave)beforeSave();
 				player.save(function(err){
 					if(err)console.log(err);
-					//console.log('Loaded: '+player.wid);
 					callback();
 				});
 			}
-		});
-		
-		req.onTimeout(function(){
+		},function(){
 			console.log('Timeout: '+player.wid);
 			callback({status:"error",error:"timeout"});
 		});

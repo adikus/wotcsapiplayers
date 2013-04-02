@@ -3,7 +3,7 @@ var cls = require("./lib/class"),
     http = require("http");
 
 module.exports = Request = cls.Class.extend({
-	init: function(method,id,api){
+	init: function(method,id){
 		this.data = '';
 		
 		var host = this.getHost(id),

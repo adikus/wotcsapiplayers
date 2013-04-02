@@ -20,6 +20,7 @@ module.exports = router = cls.Class.extend({
 	    for(var i=2;i<path_parts.length;i++){
 	    	options.push(path_parts[i]);
 	    }
+	    options = this.parseOptions(options);
 
 	    var ret = {};
 	    if(path === ""){
@@ -32,5 +33,18 @@ module.exports = router = cls.Class.extend({
 	    	if(path && !this.routes[path])ret.error += 'Method '+path+' does not exist;';
 	    }
 		return ret;
+	},
+	
+	parseOptions: function(options){
+		var ret = [];
+		_.each(options,function(option){
+			var i = option.indexOf("=");
+			if(i != -1){
+				var key = option.substring(0, i),
+					val = option.substring(i+1);
+			ret[key] = val;
+			} else ret.push(option);
+		});
+		return ret; 
 	}
 });

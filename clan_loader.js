@@ -1,87 +1,107 @@
 var cls = require("./lib/class"),
     _ = require("underscore"),
     DBTypes = require("./db_types"),
-    Config = require("./config"),
-    http = require("http");
+    Config = require("./config");
     
 module.exports = ClanLoader = cls.Class.extend({
-	init: function(wid,forceLoad){
-		var self = this,
-			time = new Date();
+	init: function(wid){		
+		this.lastAccessed = this.created = new Date();
+		this.wid = wid;
+		this.reqsP = 0;
+		this.savesP = 0;
+		
+		var self = this;		
+		this.deleteInterval = setInterval(function(){
+			self.checkDelete();
+		},1000);
+	},
+	
+	checkDelete: function() {
+		var now = new Date(),
+			self = this,
+			duration = now.getTime()-self.lastAccessed.getTime();
 			
+		if(duration > Config.loaderDeleteTime){
+			clearInterval(self.deleteInterval);
+			self.delete_callback();
+		}
+	},
+	
+	start: function(force) {
 		this.lastAccessed = new Date();
+		
 		this.players = [];
 		this.done = false;
-		this.wid = wid;
 		this.l = 99999999;
+		
 		this.errors = [];
 		this.reqsP = 0;
 		this.savesP = 0;
-		this.created = new Date();
-		
-		this.deleteInterval = setInterval(function(){
-			var now = new Date(),
-				duration = now.getTime()-self.lastAccessed.getTime();
-				
-				if(duration > Config.loaderDeleteTime){
-					clearInterval(self.deleteInterval);
-					self.delete_callback();
-				}
-		},1000);
-			
+	
+		var time = new Date(),
+			self = this;
 		time.setTime(time.getTime()-Config.playerUpdateInterval);
-		if(forceLoad){
-			cond1 = {clan_id: wid,updated_at:{$gt:new Date()}};
-			cond2 = {clan_id: wid,updated_at:{$lt:new Date()}};
-		}else{
-			cond1 = {clan_id: wid,updated_at:{$gt:time}};
-			cond2 = {clan_id: wid,updated_at:{$lt:time}};
-		}
 		
+		console.log("Starting loader for clan: "+this.wid);
 		
-		DBTypes.Player.count({clan_id: wid},function(err,count){
+		DBTypes.Player.count({clan_id: this.wid},function(err,count){
 			self.l = count;
 			if(self.l == 0)self.done = true;
-			DBTypes.Player.find(cond1,function(err,docs){
-				var players = _.map(docs,function(doc){var p = new Player(doc.wid);p.doc = doc;return p;});
-				_.each(players,function(player){
-					player.getData(function(data){
-						data.saved_at = (new Date()).getTime();
-						self.players.push(data);
-						self.l--;
-						if(self.l == 0)self.done = true;
-					});
-				});
-			});
-			DBTypes.Player.find(cond2,function(err,docs){
-				var players = _.map(docs,function(doc){var p = new Player(doc.wid);p.doc = doc;return p;});
-				_.each(players,function(player){
-					self.reqsP++;
-					self.loadPlayer(player,function(err){
-						self.reqsP--;
-						if(!err){
-							self.savesP--;
-							if(player.doc.clan_id == wid){
-								player.getData(function(data){
-									data.saved_at = (new Date()).getTime();
-									self.players.push(data);
-									self.l--;
-									if(self.l == 0)self.done = true;
-								});
-							}else {
-								self.l--;
-								if(self.l == 0)self.done = true;
-							}
-						}
-						else {
-							self.errors.push(err);
-							self.l--;
-							if(self.l == 0)self.done = true;
-						}
-					},function(){self.savesP++;});
-				});
+			if(!force)self.loadFromDB(time);
+			self.loadFromWG(time,force);
+		});
+	},
+	
+	loadFromDB: function(time) {
+		var cond = {clan_id: this.wid,updated_at:{$gt:time}},
+			self = this;
+		
+		DBTypes.Player.find(cond,function(err,docs){
+			var players = _.map(docs,function(doc){var p = new Player(doc.wid);p.doc = doc;return p;});
+			_.each(players,function(player){
+				player.getData(function(data){self.player_data_callback(data)});
 			});
 		});
+	},
+	
+	loadFromWG: function(time, force) {
+		var cond = {clan_id: this.wid,updated_at:{$lt: (force?new Date():time) }},
+			self = this;
+		
+		DBTypes.Player.find(cond,function(err,docs){
+			var players = _.map(docs,function(doc){var p = new Player(doc.wid);p.doc = doc;return p;});
+			_.each(players,function(player){
+				self.reqsP++;
+				self.loadPlayer(player,function(err){
+					self.reqsP--;
+					if(!err) {
+						self.savesP--;
+						if(player.doc.clan_id == self.wid){
+							player.getData(function(data){self.player_data_callback(data)});
+						}else {
+							self.playerDone();
+						}
+					} else self.handleError(err);
+				},function(){self.savesP++;});
+			});
+		});
+	},
+	
+	player_data_callback: function(data) {
+		data.saved_at = (new Date()).getTime();
+		//console.log(this.players);
+		this.players.push(data);
+		this.playerDone();
+	},
+	
+	playerDone: function() {
+		this.l--;
+		if(this.l == 0)this.done = true;
+	},
+	
+	handleError: function(err) {
+		if(err)this.errors.push(err);
+		this.playerDone();
 	},
 	
 	isDone: function() {

@@ -6,6 +6,7 @@ module.exports = Config = {
 	updatePlayerStatsInterval: 12*60*60*1000,
 	loaderDeleteTime: 20*1000,
 	maxBusyLoaders: 5,
+	simultaneousReqs: 10,
 	loaderWaitTime: 1000,
 	defaultPort: 3000,
 	defaultMongo: "mongodb://localhost/wotcsapi",
