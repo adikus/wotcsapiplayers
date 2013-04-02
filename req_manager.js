@@ -26,12 +26,10 @@ module.exports = ReqManager = cls.Class.extend({
 	},
 	
 	pos: function(wid){
-		for(var i = 0;i<this.ids.length;i++){
-			console.log(i);
-			console.log(this.ids[i].w);
-			if(this.ids[i].w = wid)return this.ids.length-i;
-		}
-		return -1;
+		var ret = 0;
+		_.find(this.ids,function(i){return i.w == wid;ret++;});
+		if(ret == this.ids.length)return -1;
+		return this.ids.length-ret;
 	},
 	
 	getAverageTime: function() {
