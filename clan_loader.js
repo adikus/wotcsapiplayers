@@ -37,6 +37,7 @@ module.exports = ClanLoader = cls.Class.extend({
 		this.errors = [];
 		this.reqsP = 0;
 		this.savesP = 0;
+		this.lastWid = 0;
 	
 		var time = new Date(),
 			self = this;
@@ -72,6 +73,7 @@ module.exports = ClanLoader = cls.Class.extend({
 			var players = _.map(docs,function(doc){var p = new Player(doc.wid);p.doc = doc;return p;});
 			_.each(players,function(player){
 				self.reqsP++;
+				self.lastWid = player.wid;
 				self.loadPlayer(player,function(err){
 					self.reqsP--;
 					if(!err) {

@@ -102,7 +102,7 @@ module.exports = App = cls.Class.extend({
 		console.log("Creating loader for clan "+wid);
 		this.loaders[wid] = new ClanLoader(wid);
 		this.loaders[wid].setPlayerLoadFunction(function(player,callback,beforeSave){
-			self.loadPlayer(player,callback,beforeSave);
+			return self.loadPlayer(player,callback,beforeSave);
 		});
 		this.loaders[wid].start(force);
 		this.loaders[wid].deleteCallback(function(){
@@ -118,6 +118,10 @@ module.exports = App = cls.Class.extend({
 			if(retry && this.loaders[wid].isDone())this.loaders[wid].start(force);
 			ready_callback();
 		}else{
+			if(self.busyLoaders() >= Config.maxBusyLoaders){
+				callback({status:"wait"});
+				return false;
+			}
 			if(forceUpdatePlayerList){
 				DBTypes.Clan.findOne({wid:wid},function(err,doc){
 					self.updatePlayerListForClan(doc,false,function(){
@@ -132,19 +136,25 @@ module.exports = App = cls.Class.extend({
 		}
 	},
 	
+	getDataFromLoader: function(wid,last){
+		var ret = this.loaders[wid].getData(last);
+		ret.last_pos = this.rm.pos(this.loaders[wid].lastWid);
+		return ret;
+	},
+	
 	waitForLoader: function(callback, wid, last){
 		var self = this,
 			waitTime = Config.loaderWaitTime,
 			waitInterval = setInterval(function(){
 			if(self.loaders[wid] && self.loaders[wid].isDone()){
 				clearInterval(waitInterval);
-				callback(self.loaders[wid].getData(last));
+				callback(self.getDataFromLoader(wid,last));
 			}else{
 				waitTime -= 100;
 				if(waitTime <= 0){
 					clearInterval(waitInterval);
-					if(self.loaders[wid])callback(self.loaders[wid].getData(last));
-					else wait_callback({members:[],status:"loader deleted",last:0,is_done:true});
+					if(self.loaders[wid])callback(self.getDataFromLoader(wid,last));
+					else callback({members:[],status:"loader deleted",last:0,is_done:true});
 				}
 			}
 		},100);
@@ -161,72 +171,12 @@ module.exports = App = cls.Class.extend({
 		return function(callback) {
 			self.onLoaderReady(wid,force,retry,forceUpdatePlayerList,callback,function(){
 				if(self.loaders[wid].isDone()){
-					callback(self.loaders[wid].getData(last));					
+					callback(self.getDataFromLoader(wid,last));				
 				}else{
 					self.waitForLoader(callback,wid,last);
 				}
 			});
 		};
-	},
-	
-	stuff: function() {	
-		var wait_callback = null,
-			wid = options[0],
-			self = this,
-			forceLoad = options[2] != "0"?options[2]:false,
-			forceUpdatePlayerList = options[3] == "1",
-			last = options[1],
-			waitTime = Config.loaderWaitTime,
-			waitInterval = null,
-			wait = function(){
-				waitInterval = setInterval(function(){
-					if(self.loaders[wid] && self.loaders[wid].isDone()){
-						clearInterval(waitInterval);
-						wait_callback(self.loaders[wid].getData(last));
-					}else{
-						waitTime -= 100;
-						if(waitTime <= 0){
-							clearInterval(waitInterval);
-							if(self.loaders[wid])wait_callback(self.loaders[wid].getData(last));
-							else wait_callback({members:[],status:"loader deleted",last:0,is_done:true});
-						}
-					}
-				},100);
-			};
-			
-		return function(callback) {
-			wait_callback = callback;
-			
-			if(self.loaders[wid] && !forceLoad){
-				if(self.loaders[wid].isDone()){
-					wait_callback(self.loaders[wid].getData(last));					
-				}else{
-					wait();
-				}
-			}else{
-				if(self.busyLoaders() >= Config.maxBusyLoaders){
-					callback({status:"wait"});
-					return false;
-				}
-				var newLoader = function(){
-					console.log("Creating loader for clan "+wid);
-					self.loaders[wid] = new ClanLoader(wid,forceLoad == "1");
-					self.loaders[wid].setPlayerLoadFunction(function(player,callback,beforeSave){
-						self.loadPlayer(player,callback,beforeSave);
-					});
-					self.loaders[wid].deleteCallback(function(){
-						console.log("Deleting loader for clan "+wid);
-						delete self.loaders[wid];
-					});
-					wait();
-				}
-				if(forceUpdatePlayerList){
-					DBTypes.Clan.findOne({wid:wid},function(err,doc){
-						self.updatePlayerListForClan(doc,false,newLoader);
-					});
-				}else newLoader();
-			}
-		}
 	},
 	
 	playerStats: function(options) {
@@ -355,7 +305,8 @@ module.exports = App = cls.Class.extend({
 	loaderStatus: function(options) {
 		var ret = {status:"ok",reqs_pending_total:0,saves_pending_total:0,speed:0,average_req_time:0,loaders:[]},
 			r = 0,
-			s = 0;
+			s = 0,
+			self = this;
 		_.each(this.loaders,function(loader) {
 			r += loader.reqsP;
 			s += loader.savesP;
@@ -363,6 +314,7 @@ module.exports = App = cls.Class.extend({
 				wid:loader.wid,
 				created:loader.created,
 				last_access:loader.lastAccessed,
+				last_pos:self.rm.pos(loader.lastWid),
 				to_be_done:loader.l,
 				reqs_pending:loader.reqsP,
 				saves_pending:loader.savesP,
@@ -391,7 +343,7 @@ module.exports = App = cls.Class.extend({
 	},
 	
 	loadPlayer: function(player,callback,beforeSave) {
-		this.rm.addReq('accounts',player.wid,function(data){
+		return this.rm.addReq('accounts',player.wid,function(data){
 			if(!player.parseData(data)){
 				callback({status:"error",error:"parse error",wid:player.wid});
 			}else{

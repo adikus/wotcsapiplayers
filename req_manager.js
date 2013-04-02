@@ -16,12 +16,22 @@ module.exports = ReqManager = cls.Class.extend({
 	
 	addReq: function(req, wid, success, timeout){
 		this.ids.push({r:req,w:wid,s:success,t:timeout});
+		return this.ids.length-1;
 	},
 	
 	step: function(){
 		while(this.r < this.s && this.ids.length > 0){
 			this.startRequest(this.ids.shift());
 		}
+	},
+	
+	pos: function(wid){
+		for(var i = 0;i<this.ids.length;i++){
+			console.log(i);
+			console.log(this.ids[i].w);
+			if(this.ids[i].w = wid)return this.ids.length-i;
+		}
+		return -1;
 	},
 	
 	getAverageTime: function() {
