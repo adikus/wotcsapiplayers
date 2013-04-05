@@ -11,7 +11,7 @@ module.exports = App = cls.Class.extend({
 	init: function(){
 		console.log('Initialising app');
 		this.loaders = {};
-		this.rm = new ReqManager(Config.simultaneousReqs);
+		this.rm = new ReqManager(Config.simultaneousClans,Config.simultaneousReqsClan,Config.simultaneousReqsNoClan);
 	},
 	
 	setSimultaneousReqs: function(options){
@@ -102,7 +102,7 @@ module.exports = App = cls.Class.extend({
 		console.log("Creating loader for clan "+wid);
 		this.loaders[wid] = new ClanLoader(wid);
 		this.loaders[wid].setPlayerLoadFunction(function(player,callback,beforeSave){
-			return self.loadPlayer(player,callback,beforeSave);
+			return self.loadPlayer(player,wid,callback,beforeSave);
 		});
 		this.loaders[wid].start(force);
 		this.loaders[wid].deleteCallback(function(){
@@ -138,7 +138,7 @@ module.exports = App = cls.Class.extend({
 	
 	getDataFromLoader: function(wid,last){
 		var ret = this.loaders[wid].getData(last);
-		ret.last_pos = this.rm.pos(this.loaders[wid].lastWid);
+		ret.last_pos = this.rm.pos(this.loaders[wid].lastWid,wid);
 		return ret;
 	},
 	
@@ -314,7 +314,8 @@ module.exports = App = cls.Class.extend({
 				wid:loader.wid,
 				created:loader.created,
 				last_access:loader.lastAccessed,
-				last_pos:self.rm.pos(loader.lastWid),
+				queue:self.rm.clans[loader.wid],
+				last_pos:self.rm.pos(loader.lastWid,loader.wid),
 				to_be_done:loader.l,
 				reqs_pending:loader.reqsP,
 				saves_pending:loader.savesP,
@@ -342,8 +343,8 @@ module.exports = App = cls.Class.extend({
 		}
 	},
 	
-	loadPlayer: function(player,callback,beforeSave) {
-		return this.rm.addReq('accounts',player.wid,function(data){
+	loadPlayer: function(player,wid,callback,beforeSave) {
+		return this.rm.addReq(wid,'accounts',player.wid,function(data){
 			if(!player.parseData(data)){
 				callback({status:"error",error:"parse error",wid:player.wid});
 			}else{
@@ -371,7 +372,7 @@ module.exports = App = cls.Class.extend({
 			
 			player.find(function(){
 				if(player.getUpdatedAt() < now.getTime() - 12*3600*1000 || forceLoad){
-					self.loadPlayer(player,function(err){
+					self.loadPlayer(player,false,function(err){
 						if(err)wait_callback({status:"error"});
 						else player.getStats(wait_callback);
 					});
@@ -394,7 +395,7 @@ module.exports = App = cls.Class.extend({
 			
 			player.find(function(){
 				if(player.getUpdatedAt() < now.getTime() - 12*3600*1000 || forceLoad){
-					self.loadPlayer(player,function(err){
+					self.loadPlayer(player,false,function(err){
 						if(err)wait_callback({status:"error"});
 						else player.getData(wait_callback);
 					});

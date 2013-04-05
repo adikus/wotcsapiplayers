@@ -53,7 +53,7 @@ module.exports = Player = cls.Class.extend({
 	    }
 		
 		if(playerData.status == "error"){
-			console.log(playerData.error+" - "+playerData.status_code+" - "+this.wid);
+			console.log(playerData.status_code+" - "+this.wid);
 			this.doc.status = playerData.status_code;
 			this.doc.updated_at = new Date();
 			return true;

@@ -1,6 +1,6 @@
 {
   "name": "WoTCSAPIplayers",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "dependencies": {
   	"underscore": ">0",
   	"mongoose": ">0"

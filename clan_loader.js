@@ -68,7 +68,6 @@ module.exports = ClanLoader = cls.Class.extend({
 	loadFromWG: function(time, force) {
 		var cond = {clan_id: this.wid,updated_at:{$lt: (force?new Date():time) }},
 			self = this;
-		
 		DBTypes.Player.find(cond,function(err,docs){
 			var players = _.map(docs,function(doc){var p = new Player(doc.wid);p.doc = doc;return p;});
 			_.each(players,function(player){
