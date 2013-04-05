@@ -202,6 +202,26 @@ module.exports = Player = cls.Class.extend({
 		});
 	},
 	
+	filterVehs: function(best) {
+		var ret = [{tier:0,tanks:[],scouts:[]},
+		             {tier:0,tanks:[]},
+		             {tier:0,tanks:[]},
+		             {tier:0,tanks:[]},
+		             {tier:0,tanks:[]}];
+		for(var i in best){
+			for(var j in best[i].tanks){
+				if(best[i].tanks[j].tier > ret[i].tier)ret[i].tier = best[i].tanks[j].tier;
+			}
+		}
+		for(var i in best){
+			for(var j in best[i].tanks){
+				if(best[i].tanks[j].tier == ret[i].tier)ret[i].tanks.push(best[i].tanks[j]);
+			}
+		}
+		ret[0].scouts = best[0].scouts;
+		return ret;
+	},
+	
 	getData: function(callback) {
 		var ret = {},
 			self = this,
@@ -222,6 +242,7 @@ module.exports = Player = cls.Class.extend({
 				if(i == 0)for(var j in ret.vehs[i].scouts){
 					ret.vehs[i].scouts[j] = ret.vehs[i].scouts[j].filteredData();
 				}
+				ret.vehs = self.filterVehs(ret.vehs);
 			}
 			vehsLoaded = true;
 		}else{
@@ -245,11 +266,7 @@ module.exports = Player = cls.Class.extend({
 						l--;
 						if(l == 0){
 							vehsLoaded = true;
-							
-							for(var i in self.best){
-								if(self.best[i].tanks[0])self.best[i].tier = self.best[i].tanks[0].tier;
-							}
-							ret.vehs = self.best;
+							ret.vehs = self.filterVehs(self.best);
 							
 							ret.status = "ok";
 							callback(ret);
