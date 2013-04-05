@@ -5,7 +5,7 @@ module.exports = Config = {
 	updateVehStatsInterval: 60*60*1000,
 	updatePlayerStatsInterval: 12*60*60*1000,
 	loaderDeleteTime: 60*1000,
-	maxBusyLoaders: 5,
+	maxBusyLoaders: 9,
 	simultaneousClans: 3,
 	simultaneousReqsClan: 3,
 	simultaneousReqsNoClan: 1,
