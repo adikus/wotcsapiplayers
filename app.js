@@ -115,8 +115,17 @@ module.exports = App = cls.Class.extend({
 		var self = this;
 		
 		if(this.loaders[wid]){
-			if(retry && this.loaders[wid].isDone())this.loaders[wid].start(force);
-			ready_callback();
+      if(forceUpdatePlayerList){
+				DBTypes.Clan.findOne({wid:wid},function(err,doc){
+					self.updatePlayerListForClan(doc,false,function(){
+						if(retry && this.loaders[wid].isDone())this.loaders[wid].start(force);
+  			    ready_callback();
+					});
+				});
+			}else{
+  			if(retry && this.loaders[wid].isDone())this.loaders[wid].start(force);
+  			ready_callback();
+      }
 		}else{
 			if(self.busyLoaders() >= Config.maxBusyLoaders){
 				callback({status:"wait"});
