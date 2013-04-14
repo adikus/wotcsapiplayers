@@ -103,6 +103,7 @@ module.exports = ReqManager = cls.Class.extend({
 		
 		req.onTimeout(function(){
 			id.t();
+			self.r[q]--;
 		});
 		
 		this.r[q]++;
