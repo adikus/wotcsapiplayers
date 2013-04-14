@@ -77,7 +77,6 @@ module.exports = ReqManager = cls.Class.extend({
 			}
 		}
 		while(this.r[0] < this.noClanMax && this.ids[0].length > 0){
-			console.log("halo");
 			this.startRequest(this.ids[0].shift(),0);
 		}
 		

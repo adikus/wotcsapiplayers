@@ -47,6 +47,7 @@ module.exports = ClanLoader = cls.Class.extend({
 		
 		DBTypes.Player.count({clan_id: this.wid},function(err,count){
 			self.l = count;
+
 			if(self.l == 0)self.done = true;
 			if(!force)self.loadFromDB(time);
 			self.loadFromWG(time,force);
@@ -56,7 +57,7 @@ module.exports = ClanLoader = cls.Class.extend({
 	loadFromDB: function(time) {
 		var cond = {clan_id: this.wid,updated_at:{$gt:time}},
 			self = this;
-		
+
 		DBTypes.Player.find(cond,function(err,docs){
 			var players = _.map(docs,function(doc){var p = new Player(doc.wid);p.doc = doc;return p;});
 			_.each(players,function(player){

@@ -166,16 +166,18 @@ module.exports = Player = cls.Class.extend({
 	},
 	
 	allSaved: function() {
-		return this.saved.main && this.saved.vehs /*&& this.saved.stats*/;
+		return /*this.saved.main &&*/ this.saved.vehs /*&& this.saved.stats*/;
 	},
 	
 	save: function(callback){
 		var self = this;
 		
+		if(self.allSaved())callback();
+		else self.saved_callback = callback;
+		
 		this.doc.save(function(err){
+			//console.log('Player saved');
 			self.saved.main = true;
-			if(self.allSaved())callback();
-			else self.saved_callback = callback;
 		});
 	},
 	
@@ -247,7 +249,6 @@ module.exports = Player = cls.Class.extend({
 			vehsLoaded = true;
 		}else{
 			DBTypes.PlVeh.find({player:this.doc._id},function(err, docs){
-				
 				var l = docs.length;
 				if(l == 0){
 					ret.vehs = self.best;

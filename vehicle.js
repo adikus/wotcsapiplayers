@@ -20,6 +20,8 @@ module.exports = Vehicle = cls.Class.extend({
 	findPlayerVehicle: function() {
 		var self = this;
 		
+		if(self.find_callback)self.find_callback();
+		
 		DBTypes.PlVeh.findOne({player:self.pid,veh:self.vehDoc._id},function(err, doc){
 			if(!doc){
 				self.doc = new DBTypes.PlVeh();
@@ -32,8 +34,9 @@ module.exports = Vehicle = cls.Class.extend({
 			self.doc.battles = self.battles;
 			self.doc.wins = self.wins;
 		
-			self.doc.save(function(){
-				if(self.find_callback)self.find_callback();	
+			self.doc.save(function(err){
+				//console.log('Veh '+self.vehDoc.name+' saved');
+				if(err)console.log(err);
 			});		
 		});
 	},
@@ -111,11 +114,11 @@ module.exports = Vehicle = cls.Class.extend({
 					"name": this.vehDoc.name,
 					"lname": this.fixName(this.vehDoc.lname),
 					"tier": this.vehDoc.tier,
-					"battles": this.doc.battles,
+					"battles": this.doc?this.doc.battles:this.battles,
 					"nation": this.vehDoc.nation,
-					"wins": this.doc.wins,
+					"wins": this.doc?this.doc.wins:this.wins,
 					"type": this.vehDoc.type,
-					"updated_at": this.doc.updated_at,
+					"updated_at": this.doc?this.doc.updated_at:Date.now(),
 				}
 	},
 	

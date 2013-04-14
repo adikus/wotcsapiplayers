@@ -359,6 +359,7 @@ module.exports = App = cls.Class.extend({
 			}else{
 				if(beforeSave)beforeSave();
 				player.save(function(err){
+					//console.log('Data returned');
 					if(err)console.log(err);
 					callback();
 				});
