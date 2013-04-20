@@ -87,8 +87,10 @@ module.exports = Player = cls.Class.extend({
 		ret.vehs = this.best;
 		ret.updated_at =this.doc.u;
 		ret.stats_current = _.clone(this.doc.sc);
-		ret.stats_current.updated_at = ret.stats_current.u;
-		delete ret.stats_current.u;
+		if(ret.stats_current){
+			ret.stats_current.updated_at = ret.stats_current.u;
+			delete ret.stats_current.u;	
+		}
 		ret.status = "ok";
 		callback(ret);
 	},
