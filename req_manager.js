@@ -134,7 +134,7 @@ module.exports = ReqManager = cls.Class.extend({
 	},
 	
 	setSimultaneous: function(simultaneous) {
-		this.s = simultaneous;
+		this.clanMax = simultaneous;
 	},
 	
 	getDiff: function(t1,t2) {

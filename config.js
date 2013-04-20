@@ -1,17 +1,33 @@
 module.exports = Config = {
-	updatePlayerListInterval: 5*60*1000,
-	updateStatusInterval: 10*60*1000,
-	updateScoreInterval: 30*60*1000,
-	updateVehStatsInterval: 60*60*1000,
-	updatePlayerStatsInterval: 12*60*60*1000,
-	loaderDeleteTime: 60*1000,
-	maxBusyLoaders: 9,
-	simultaneousClans: 3,
-	simultaneousReqsClan: 3,
-	simultaneousReqsNoClan: 1,
-	loaderWaitTime: 1000,
-	defaultPort: 3000,
-	defaultMongo: "mongodb://localhost/wotcsapi",
-	maxStats: 20,
-	playerUpdateInterval: 12*60*60*1000,
+	server: {
+		defPort: 3000,
+	},
+	db: {
+		defHost: "mongodb://localhost/wotcsapi",
+	},
+	stats: {
+		maxDays: 7,
+		maxWeeks: 5,
+	},
+	loader: {
+		simClans: 3,
+		reqsPerClan: 3,
+		reqsNoClan: 1,
+		maxBusy: 9,
+		deleteTimeout: 60*1000,  //1 minute
+		waitTimeout: 1000,  //1 second
+	},
+	jobs: {
+		periodical: {
+			"600": "updateStatus", //10 minutes
+		},
+		timed: {
+			"1:30:00": "updatePlayerStats",
+			"1:40:00": "updateClanStats",
+			"1:50:00": "updateVehStats",
+		}
+	},
+	player: {
+		updateInterval: 12*60*60*1000,	//12 hours
+	},
 };

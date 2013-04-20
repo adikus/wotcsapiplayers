@@ -5,15 +5,40 @@ var cls = require("./lib/class"),
     DBTypes = require("./db_types"),
     ClanLoader = require("./clan_loader"),
     Config = require("./config"),
-    ReqManager = require("./req_manager");
+    ReqManager = require("./req_manager"),
+    StatsManager = require("./stats_manager"),
+    JobManager = require("./job_manager");
     
 module.exports = App = cls.Class.extend({
-	init: function(){
+	init: function(callback){
+		var self = this;
 		console.log('Initialising app');
 		this.loaders = {};
-		this.rm = new ReqManager(Config.simultaneousClans,Config.simultaneousReqsClan,Config.simultaneousReqsNoClan);
+		this.rm = new ReqManager(Config.loader.simClans,Config.loader.reqsPerClan,Config.loader.reqsNoClan);
+		this.jm = new JobManager();
+		this.loadVehicleData(callback);
 	},
 	
+	/*
+	 * Load vehicle data to memory
+	 */
+	loadVehicleData: function(callback){
+		DBTypes.Veh.find(function(err,docs){
+			_.each(docs,function(doc){
+				VEHICLE_DATA[doc.name] = {
+					t: doc.type,
+					n: doc.nation,
+					l: doc.tier,
+					ln: doc.lname,
+				};
+			});
+			if(callback)callback();
+		});
+	},
+	
+	/*
+	 * Set how many simultaneous request per clan are alowed
+	 */
 	setSimultaneousReqs: function(options){
 		if(options[0]){
 			this.rm.setSimultaneous(options[0]);
@@ -21,73 +46,29 @@ module.exports = App = cls.Class.extend({
 		} else return {status:"error", error:"Number not defined"};
 	},
 	
-	updateStatus: function() {
-		var times = [],
-			start = new Date(),
-			l = 13,
-			testForEnd = function(){
-				l--;
-				if(l == 0){
-					var end = new Date(),
-						duration = end.getTime() - start.getTime();
-					console.log("Status updated ("+duration+" ms).");
-				}
-			};
-		
-		console.log("Updating status.");
-		
-			for(var i=1;i<=12;i++){
-				var time = new Date();
-				time.setTime(time.getTime()-i*3600000);
-				times[i] = time;
-			}	
-			
-			DBTypes.PlayerStatus.remove(function(){
-				_.each(times,function(time,key){
-					if(key > 0)
-					DBTypes.Player.count({updated_at:{$gt:time}},function(err, count){
-						playerStatus = new DBTypes.PlayerStatus({_id:key,value:count});
-						playerStatus.save(function(){
-							testForEnd();
-						});
-					});
+	/*
+	 * Request manager interaction
+	 */
+	loadPlayer: function(player,wid,callback,beforeSave) {
+		return this.rm.addReq(wid,'accounts',player.wid,function(data){
+			if(!player.parseData(data)){
+				callback({status:"error",error:"parse error",wid:player.wid});
+			}else{
+				if(beforeSave)beforeSave();
+				player.save(function(err){
+					if(err)console.log(err);
+					callback();
 				});
-			});
-			
-			DBTypes.Player.count({},function(err, count){
-				playerStatus = new DBTypes.PlayerStatus({_id:0,value:count});
-				playerStatus.save(function(){
-					testForEnd();
-				});
-			});
-	},
-	
-	statusGlobal: function(options) {		
-		var self = this,
-			wait_callback = null,
-			ret = {updated:{"1h":0,"2h":0,"3h":0,"4h":0,"5h":0,"6h":0,"7h":0,"8h":0,"9h":0,"10h":0,"11h":0,"12h":0}};
-		
-		DBTypes.PlayerStatus.find(function(err, docs){
-			_.each(docs,function(doc){
-				var key = doc._id.toString()+"h";
-				if(key == "0h"){
-					ret.total = doc.value;
-				}
-				if(ret.updated[key] != undefined){
-					ret.updated[key] = doc.value;
-				}
-			});
-			for(var i=12;i>1;i--){
-				ret.updated[i+"h"] -= ret.updated[(i-1)+"h"];
 			}
-			wait_callback(ret);
+		},function(){
+			console.log('Timeout: '+player.wid);
+			callback({status:"error",error:"timeout"});
 		});
-		
-		return function(callback) {
-			wait_callback = callback;
-		}
 	},
 	
+	/*
+	 * Clan loading function below
+	 */
 	busyLoaders: function(options) {
 		var ret = 0;
 		_.each(this.loaders,function(loader){
@@ -115,28 +96,28 @@ module.exports = App = cls.Class.extend({
 		var self = this;
 		
 		if(this.loaders[wid]){
-      if(forceUpdatePlayerList){
-				DBTypes.Clan.findOne({wid:wid},function(err,doc){
+			if(forceUpdatePlayerList){
+				DBTypes.Clan.findOne({_id:wid},function(err,doc){
 					self.updatePlayerListForClan(doc,false,function(){
 						if(retry && self.loaders[wid].isDone())self.loaders[wid].start(force);
-  			    ready_callback();
-					});
+  			    		ready_callback();
+					},true);
 				});
 			}else{
-  			if(retry && this.loaders[wid].isDone())this.loaders[wid].start(force);
-  			ready_callback();
-      }
+  				if(retry && this.loaders[wid].isDone())this.loaders[wid].start(force);
+  				ready_callback();
+      		}
 		}else{
-			if(self.busyLoaders() >= Config.maxBusyLoaders){
+			if(self.busyLoaders() >= Config.loader.maxBusy){
 				callback({status:"wait"});
 				return false;
 			}
 			if(forceUpdatePlayerList){
-				DBTypes.Clan.findOne({wid:wid},function(err,doc){
+				DBTypes.Clan.findOne({_id:wid},function(err,doc){
 					self.updatePlayerListForClan(doc,false,function(){
 						self.createLoader(wid, force);
 						ready_callback();
-					});
+					},true);
 				});
 			} else {
 				self.createLoader(wid, force);
@@ -153,7 +134,7 @@ module.exports = App = cls.Class.extend({
 	
 	waitForLoader: function(callback, wid, last){
 		var self = this,
-			waitTime = Config.loaderWaitTime,
+			waitTime = Config.loader.waitTimeout,
 			waitInterval = setInterval(function(){
 			if(self.loaders[wid] && self.loaders[wid].isDone()){
 				clearInterval(waitInterval);
@@ -170,6 +151,7 @@ module.exports = App = cls.Class.extend({
 	},
 	
 	statusClan: function(options) {
+		if(options[0] == "stats")return this.statsFromDB(options);
 		var self = this,
 			wid = options[0],
 			force = options["f"] == "true"?true:false,
@@ -188,10 +170,116 @@ module.exports = App = cls.Class.extend({
 		};
 	},
 	
+	updatePlayerListForClan: function(clan,player_ids,callback,waitTillDone){
+		var self = this,
+			start = new Date(),
+			count = 0,
+			compareIds = function(player_ids) {
+				var waiting = 0;
+				_.each(clan.ms,function(wid){
+					if(!_.contains(player_ids,wid)){
+						var player = new DBTypes.Player({
+							_id: wid,
+							c: clan._id,
+							s: "0",
+							updated_at: 0
+						});
+						waiting++;
+						DBTypes.Player.findOne({_id:wid},function(err,doc){
+							if(!doc){
+								player.save(function(err){
+									if(err)console.log(err);
+									waiting--;
+									if(waiting == 0 && waitTillDone)callback();
+								});
+							}else{
+								doc.c = clan._id;
+								doc.save(function(err){
+									if(err)console.log(err);
+									waiting--;
+									if(waiting == 0 && waitTillDone)callback();
+								});
+							}
+						});
+						count++;
+					}
+				});
+				var end = new Date(),
+					duration = end.getTime() - start.getTime();
+				console.log("Updating player list for clan: "+clan._id+" done("+count+" added; "+duration+" ms).");
+				if(callback && (!waitTillDone || count == 0))callback();
+			};
+		
+		if(clan.ms){
+			if(!player_ids){
+				DBTypes.Player.find({c: clan._id}).select("_id").exec(function(err, docs){
+					var wids = _.map(docs,function(player){return player._id;});
+					console.log(wids.length,clan.ms.length);
+					compareIds(wids);
+				});
+			} else {
+				compareIds(player_ids);
+			}
+		}else{if(callback)callback();}
+		clan.players_updated_at = new Date();
+		clan.save();
+	},
+	
+	/*
+	 * Player loading functions below
+	 */
+	statusPlayer: function(options) {
+		if(options[0] == "stats")return this.statsFromDB(options);
+		var player = new Player(options[0]),
+			forceLoad = options["f"]=="true",
+			now = new Date(),
+			self = this;
+			
+		return function(callback) {			
+			player.find(function(){
+				if(player.getUpdatedAt() < now.getTime() - Config.player.updateInterval || forceLoad){
+					self.loadPlayer(player,false,function(err){
+						if(err)callback({status:"error"});
+						else player.getData(callback);
+					});
+				}else player.getData(callback);
+			},true);
+		}
+	},
+	
+	statsFromDB: function(options) {
+		var sm = new StatsManager(),
+			wid = options[1],
+			now = new Date(),
+			self = this;
+		
+		return function(callback) {
+			sm.getStatsFromDB(wid,callback);
+		}
+	},
+	
+	translateNames: function(options) {
+		return function(callback) {
+			var wids = options,
+				ret = {status:"ok",players:{}};
+				
+			DBTypes.Player.find({_id:{$in:wids}}).select('wid name').exec(function(err,docs){
+				_.each(docs,function(player){
+					ret.players[player.wid] = player.name;
+				});
+				
+				callback(ret);
+			});
+		}
+	},
+	
+	/*
+	 * Statistical functions below
+	 */
 	playerStats: function(options) {
 		return function(callback) {
 			var ret = {lengths:{},counts:{},stats:{}};
-			DBTypes.PlayerStats.find(function(err,docs){
+			DBTypes.Statistic.find(function(err,docs){
 				_.each(docs,function(doc){
 					var t = doc._id.split(":")[0],
 						v = parseFloat(doc._id.split(":")[1])
@@ -209,106 +297,76 @@ module.exports = App = cls.Class.extend({
 		}
 	},
 	
-	updatePlayerStats:function() {
-		var o = {
-			map: function () {
-				if(this.stats_current){ 
-					var GPL = Math.round(this.stats_current.GPL/200)*200;
-					emit("GPL:"+GPL,1);  
-					var WIN = Math.round(this.stats_current.WIN/this.stats_current.GPL*500)/5;
-					emit("WIN:"+WIN,1); 
-					var SUR = Math.round(this.stats_current.SUR/this.stats_current.GPL*500)/5;
-					emit("SUR:"+SUR,1); 
-					var FRG = Math.round(this.stats_current.FRG/this.stats_current.GPL*100)/100;
-					emit("FRG:"+FRG,1);
-					var KD = Math.round(this.stats_current.FRG/(this.stats_current.GPL-this.stats_current.SUR)*40)/40;
-					emit("KD:"+KD,1);
-					var SPT = Math.round(this.stats_current.SPT/this.stats_current.GPL*50)/50;
-					emit("SPT:"+SPT,1);
-					var DMG = Math.round(this.stats_current.DMG/this.stats_current.GPL/10)*10;
-					emit("DMG:"+DMG,1);
-					var CPT = Math.round(this.stats_current.CPT/this.stats_current.GPL*25)/25;
-					emit("CPT:"+CPT,1);
-					var DPT = Math.round(this.stats_current.DPT/this.stats_current.GPL*50)/50;
-					emit("DPT:"+DPT,1);
-					var EXP = Math.round(this.stats_current.EXP/this.stats_current.GPL/5)*5;
-					emit("EXP:"+EXP,1);
-					var EFR = Math.round(this.stats_current.EFR/10)*10;
-					emit("EFR:"+EFR,1);
-					var WN7 = Math.round(this.stats_current.WN7/10)*10;
-					emit("WN7:"+WN7,1);
-					var SC3 = Math.round(this.stats_current.SC3/250)*250;
-					emit("SC3:"+SC3,1);
-				}
-			},
-			reduce: function (k, vals) { 
-				var ret = 0;
-				for(i in vals){
-					ret += vals[i];
-				}
-				return ret;
-			},
-			out:{replace: 'player_stats'}
-		},
-		start = new Date();
-		
-		console.log("Updating player stats.");
-		
-		DBTypes.Player.mapReduce(o,function (err, results) {
-			if(err)console.log(err);
-			var end = new Date(),
-				duration = end.getTime() - start.getTime();
-			console.log("Player stats updated ("+duration+" ms).");
-		});
+	clanStats: function(options) {
+		return function(callback) {
+			var ret = {lengths:{},counts:{},stats:{}};
+			DBTypes.CStatistic.find(function(err,docs){
+				_.each(docs,function(doc){
+					var t = doc._id.split(":")[0],
+						v = parseFloat(doc._id.split(":")[1])
+					if(!ret.stats[t]){
+						ret.stats[t] = {};
+						ret.lengths[t] = 0;
+						ret.counts[t] = 0;
+					}
+					ret.lengths[t]++;
+					ret.counts[t] += doc.value;
+					ret.stats[t][v] = doc.value;
+				});
+				callback(ret);
+			});
+		}
 	},
 	
+	vehStats: function(options) {
+		return function(callback) {
+			var ret = {lengths:{},counts:{},stats:{}};
+			DBTypes.VStatistic.find(function(err,docs){
+				_.each(docs,function(doc){
+					var veh = doc._id.split(":")[0],
+						t = doc._id.split(":")[1],
+						v = parseFloat(doc._id.split(":")[2])
+					if(!ret.stats[veh]){
+						ret.stats[veh] = {B:{},W:{},S:{}};
+						ret.lengths[veh] = {B:0,W:0,S:0};
+						ret.counts[veh] = 0;
+					}
+					ret.lengths[veh][t]++;
+					if(t == "B")ret.counts[veh] += doc.value;
+					ret.stats[veh][t][v] = doc.value;
+				});
+				callback(ret);
+			});
+		}
+	},
 	
-	updateScores: function() {
-		var o = {
-			map: function () {
-				emit(parseInt(this.clan_id), {
-					EFR: this.stats_current?this.stats_current.EFR:0,
-					SCR: this.stats_current?this.stats_current.SCR:0,
-					SC3: this.stats_current?this.stats_current.SC3:0,
-					WIN: this.stats_current?this.stats_current.WIN:0,
-					GPL: this.stats_current?this.stats_current.GPL:0,
-					WN7: this.stats_current?this.stats_current.WN7:0
-				}); 
-			},
-			reduce: function (k, vals) { 
-				ret = {
-					WIN: 0,
-					GPL: 0,
-					SCR: 0,
-					SC3: 0,
-					EFR: 0,
-					WN7: 0
-				};
-				for(i in vals){
-					ret.SCR += vals[i].SCR;
-					ret.SC3 += vals[i].SC3;
-					ret.EFR += vals[i].EFR;
-					ret.WIN += vals[i].WIN;
-					ret.GPL += vals[i].GPL;
-					ret.WN7 += vals[i].WN7;
-				}	
-				ret.EFR = ret.EFR / vals.length;
-				ret.WN7 = ret.WN7 / vals.length;
-				ret.WR = ret.WIN / ret.GPL * 100;
-				return ret;
-			},
-			out:{merge: 'clan_stats'}
-		},
-		start = new Date();
+	/*
+	 * Status functions below
+	 */
+	statusGlobal: function(options) {		
+		var self = this,
+			wait_callback = null,
+			ret = {updated:{"1h":0,"2h":0,"3h":0,"4h":0,"5h":0,"6h":0,"7h":0,"8h":0,"9h":0,"10h":0,"11h":0,"12h":0}};
 		
-		console.log("Updating scores.");
-		
-		DBTypes.Player.mapReduce(o,function (err, results) {
-			if(err)console.log(err);
-			var end = new Date(),
-				duration = end.getTime() - start.getTime();
-			console.log("Scores updated ("+duration+" ms).");
+		DBTypes.PlayerStatus.find(function(err, docs){
+			_.each(docs,function(doc){
+				var key = doc._id.toString()+"h";
+				if(key == "0h"){
+					ret.total = doc.value;
+				}
+				if(ret.updated[key] != undefined){
+					ret.updated[key] = doc.value;
+				}
+			});
+			for(var i=12;i>1;i--){
+				ret.updated[i+"h"] -= ret.updated[(i-1)+"h"];
+			}
+			wait_callback(ret);
 		});
+		
+		return function(callback) {
+			wait_callback = callback;
+		}
 	},
 	
 	loaderStatus: function(options) {
@@ -335,225 +393,5 @@ module.exports = App = cls.Class.extend({
 		ret.saves_pending_total = s;
 		ret.average_req_time = Math.round(this.rm.getAverageTime()*100)/100 + " ms";
 		return ret;
-	},
-	
-	translateNames: function(options) {
-		return function(callback) {
-			var wids = options,
-				ret = {status:"ok",players:{}};
-				
-			DBTypes.Player.find({wid:{$in:wids}}).select('wid name').exec(function(err,docs){
-				_.each(docs,function(player){
-					ret.players[player.wid] = player.name;
-				});
-				
-				callback(ret);
-			});
-		}
-	},
-	
-	loadPlayer: function(player,wid,callback,beforeSave) {
-		return this.rm.addReq(wid,'accounts',player.wid,function(data){
-			if(!player.parseData(data)){
-				callback({status:"error",error:"parse error",wid:player.wid});
-			}else{
-				if(beforeSave)beforeSave();
-				player.save(function(err){
-					//console.log('Data returned');
-					if(err)console.log(err);
-					callback();
-				});
-			}
-		},function(){
-			console.log('Timeout: '+player.wid);
-			callback({status:"error",error:"timeout"});
-		});
-	},
-	
-	statsPlayer: function(options) {
-		var player = new Player(options[1]),
-			forceLoad = options[2],
-			wait_callback = null,
-			now = new Date(),
-			self = this;
-		
-		return function(callback) {
-			wait_callback = callback;
-			
-			player.find(function(){
-				if(player.getUpdatedAt() < now.getTime() - 12*3600*1000 || forceLoad){
-					self.loadPlayer(player,false,function(err){
-						if(err)wait_callback({status:"error"});
-						else player.getStats(wait_callback);
-					});
-				}else player.getStats(wait_callback);
-			},true);
-				
-		}
-	},
-	
-	statusPlayer: function(options) {
-		if(options[0] == "stats")return this.statsPlayer(options);
-		var player = new Player(options[0]),
-			forceLoad = options[1],
-			wait_callback = null,
-			now = new Date(),
-			self = this;
-			
-		return function(callback) {
-			wait_callback = callback;
-			
-			player.find(function(){
-				if(player.getUpdatedAt() < now.getTime() - 12*3600*1000 || forceLoad){
-					self.loadPlayer(player,false,function(err){
-						if(err)wait_callback({status:"error"});
-						else player.getData(wait_callback);
-					});
-				}else player.getData(wait_callback);
-			},true);
-		}
-	},
-	
-	updatePlayerListForClan: function(clan,player_ids,callback){
-		var self = this,
-			start = new Date(),
-			count = 0,
-			compareIds = function(player_ids) {
-				_.each(clan.members,function(wid){
-					if(!_.contains(player_ids,wid)){
-						var player = new DBTypes.Player({
-							wid: wid,
-							clan_id: clan.wid,
-							locked: 0,
-							status: "Not loaded",
-							updated_at: 0
-						});
-						DBTypes.Player.findOne({wid:wid},function(err,doc){
-							if(!doc){
-								player.save(function(err){
-									if(err)console.log(err);
-								});
-							}else{
-								doc.clan_id = clan.wid;
-								doc.save(function(err){
-									if(err)console.log(err);
-								});
-							}
-						});
-						count++;
-					}
-				});
-				var end = new Date(),
-					duration = end.getTime() - start.getTime();
-				console.log("Updating player list for clan: "+clan.wid+" done("+count+" added; "+duration+" ms).");
-				if(callback)callback();
-			};
-		
-		if(clan.members){
-			if(!player_ids){
-				DBTypes.Player.find({clan_id: clan.wid}).select("wid").exec(function(err, docs){
-					var wids = _.map(docs,function(player){return player.wid;});
-					compareIds(wids);
-				});
-			} else {
-				compareIds(player_ids);
-			}
-		}else{if(callback)callback();}
-		clan.players_updated_at = new Date();
-		clan.save();
-	},
-	
-	updatePlayerLists: function(){
-		var self = this,
-			time = new Date(),
-			start = new Date();
-		
-		console.log("Updateing player list.");
-		time.setTime(time.getTime()-5*3600*1000);
-		
-		DBTypes.Clan.find({}).limit(100).sort("players_updated_at").exec(function(err,docs){
-			var wids = _.map(docs,function(clan){return clan.wid;}),
-				clans = docs;
-			DBTypes.Player.find({clan_id:{$in:wids}}).select('wid clan_id').exec(function(err,docs){
-				var end = new Date(),
-					duration = end.getTime() - start.getTime();
-				console.log("Players loaded ("+docs.length+"; "+duration+" ms).");
-				_.each(clans,function(clan){
-					var players = _.filter(docs,function(player){return player.clan_id == clan.wid;}),
-						player_ids = _.map(players,function(player){return player.wid;});
-					self.updatePlayerListForClan(clan,player_ids);
-				});
-			});
-		});
-	},
-	
-	updateVehStats: function() {
-		var o = {
-			map: function () { 
-				emit(this.veh, {
-					battles: this.battles,
-					wins: this.wins,
-					count: 1
-				}); 
-			},
-			reduce: function (k, vals) { 
-				ret = {
-					battles: 0,
-					wins: 0,
-					count: 0
-				};
-				for(i in vals){
-					ret.battles += vals[i].battles;
-					ret.wins += vals[i].wins;
-					ret.count += vals[i].count;
-				}	
-				ret.winrate = ret.wins / ret.battles * 100;
-				ret.battles_average = ret.battles / ret.count;
-				return ret;
-			},
-			out:{merge: 'veh_stats'}
-		},
-		start = new Date();
-		
-		console.log("Updating vehicle statistics.");
-		
-		DBTypes.PlVeh.mapReduce(o,function (err, results) {
-			if(err)console.log(err);
-			var end = new Date(),
-				duration = end.getTime() - start.getTime();
-			console.log("Vehicle statistics updated ("+duration+" ms).");
-		});
-	},
-	
-	vehStats: function(options) {
-		var self = this,
-			ret = {status:"ok",vehs:{}};
-		
-		return function(callback) {
-			DBTypes.VehStats.find(function(err,docs){
-				_.each(docs,function(doc){
-					ret.vehs[doc.id] = {
-						wins: doc.value.wins,
-						battles: doc.value.battles,
-						winrate: doc.value.winrate,
-						battles_average: doc.value.battles_average,
-					};
-				});
-				DBTypes.Veh.find(function(err,docs){
-					_.each(docs,function(veh){
-						if(ret.vehs[veh._id]){
-							if(veh.tier == 10 || (veh.type == 4 && veh.tier == 8)){
-								ret.vehs[veh._id].name = veh.lname;
-								ret.vehs[veh._id].type = veh.type;
-								ret.vehs[veh._id].tier = veh.tier;
-							}
-							else delete ret.vehs[veh._id];
-						}
-					});
-				
-					callback(ret);
-				});
-			});
-		};
 	},
 });

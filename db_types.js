@@ -1,103 +1,70 @@
-mongoose = require('mongoose');
+var mongoose = require('mongoose'),
+    Config = require("./config");
 
-var clanSchema = mongoose.Schema({ 
-	name: 'string',
-	tag: 'string',
-	description: '',
-	motto: 'string',
-	wid: {type:'number',index: {unique: true, dropDups: true}},
-	region: 'number',
-	status: 'string',
-	locked: 'number',
-	members: 'mixed',
-	updated_at: 'date',
-	players_updated_at: 'date'
+var oldDB = mongoose.createConnection(process.env.MONGOHQ_URL || Config.db.defHost);
+var playerDB = mongoose.createConnection(process.env.WOTCS_PLAYERDB);
+var clanDB = mongoose.createConnection(process.env.WOTCS_CLANDB);
+
+var clanSchema = mongoose.Schema({
+	_id: 'number',
+	n: 'string',
+	t: 'string',
+	d: 'string',
+	m: 'string',
+	s: 'string',
+	ms: 'mixed',
+	u: 'date'
 });
-var Clan = mongoose.model('Clan', clanSchema);
+var Clan = clanDB.model('Clan', clanSchema);
 
-var vehSchema = mongoose.Schema({ 
+var statSchema = mongoose.Schema({
+	_id: 'number',
+	s: 'mixed',
+	SC: 'number',
+});
+var Stat = oldDB.model('Stat', statSchema);
+
+var vehSchema = mongoose.Schema({
 	name: {type:'string',index: {unique: true, dropDups: true}},
 	lname: 'string',
 	tier: 'number',
 	nation: 'number',
 	type: 'number',
 });
-var VehDB = mongoose.model('Veh', vehSchema);
+var VehDB = oldDB.model('Veh', vehSchema);
 
-var plvehSchema = mongoose.Schema({
-	veh: { type: mongoose.Schema.Types.ObjectId, ref: 'Veh' },
-	player: { type: mongoose.Schema.Types.ObjectId, ref: 'Player' },
-	battles: 'number',
-	wins: 'number',
-	updated_at: 'date'
-});
-var PlVeh = mongoose.model('Plveh', plvehSchema);
-
-var playerStatsSchema = mongoose.Schema({ 
+var statisticSchema = mongoose.Schema({ 
 	_id: 'string',
 	value: 'number'
 });
-var PlayerStats = mongoose.model('PlayerStats', playerStatsSchema, 'player_stats');
-
-var clanStatsSchema = mongoose.Schema({ 
-	_id: 'number',
-	value: 'mixed'
-});
-var ClanStats = mongoose.model('ClanStats', clanStatsSchema, 'clan_stats');
+var Statistic = playerDB.model('Statistic', statisticSchema);
+var VStatistic = playerDB.model('VStatistic', statisticSchema);
+var CStatistic = oldDB.model('CStatistic', statisticSchema);
 
 var playerStatusSchema = mongoose.Schema({ 
 	_id: 'string',
 	value: 'mixed'
 });
-var PlayerStatus = mongoose.model('PlayerStatus', clanStatsSchema, 'player_status');
+var PlayerStatus = playerDB.model('PlayerStatus', playerStatusSchema, 'player_status');
 
-var vehStatsSchema = mongoose.Schema({
-	_id: 'string',
-	value: 'mixed'
+var newPlayerSchema = mongoose.Schema({
+	_id: 'number',
+	n: 'string',
+	s: 'string',
+	c: 'number',
+	sc: 'mixed',
+	v: 'mixed',
+	u: 'date'
 });
-var VehStats = mongoose.model('VehStats', vehStatsSchema, 'veh_stats');
-
-var playerSchema = mongoose.Schema({
-	wid: {type:'string',index: {unique: true, dropDups: true}},
-	name: 'string',
-	status: 'string',
-	locked: 'number',
-	clan_id: 'string',
-	stats_current: 'mixed',
-	updated_at: 'date'
-});
-var PlayerDB = mongoose.model('Player', playerSchema);
-
-var statSchema = mongoose.Schema({ 
-	GPL: 'number',
-	WIN: 'number',
-	DEF: 'number',
-	SUR: 'number',
-	FRG: 'number',
-	SPT: 'number',
-	ACR: 'number',
-	DMG: 'number',
-	CPT: 'number',
-	DPT: 'number',
-	EXP: 'number',	
-	EFR: 'number',
-	SCR: 'number',
-	SC2: 'number',
-	SC3: 'number',
-	WN7: 'number',
-	player: { type: mongoose.Schema.Types.ObjectId, ref: 'Player' },
-	updated_at: 'date'
-});
-var Stat = mongoose.model('Stat', statSchema);
+var Player = playerDB.model('Player', newPlayerSchema);
 
 module.exports = DBTypes = {
 	Clan: Clan,
 	Veh: VehDB,
-	PlVeh: PlVeh,
-	Player: PlayerDB,
+	Player: Player,
 	Stat: Stat,
-	VehStats: VehStats,
-	ClanStats: ClanStats,
-	PlayerStats: PlayerStats,
+	Statistic: Statistic,
+	VStatistic: VStatistic,
+	CStatistic: CStatistic,
 	PlayerStatus: PlayerStatus
 };

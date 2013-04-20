@@ -50,15 +50,15 @@ module.exports = Request = cls.Class.extend({
 	},
 	
 	getHost: function(id) {
+		if(id > 3000000000)return "api.worldoftanks.kr";
 		if(id > 2500000000)return "portal-wot.go.vn";
 		if(id > 2000000000)return "api.worldoftanks-sea.com";
-		if(id > 1000000000)return "worldoftanks.com";
-		if(id > 500000000)return "worldoftanks.eu";
-		return "worldoftanks.ru";
+		if(id > 1000000000)return "api.worldoftanks.com";
+		if(id > 500000000)return "api.worldoftanks.eu";
+		return "api.worldoftanks.ru";
 	},
 	
 	getApi: function(id) {
-		if(id > 2500000000)return "1.7";
 		return "1.9";
 	}
 });
