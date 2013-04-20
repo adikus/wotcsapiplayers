@@ -107,7 +107,7 @@ module.exports = VehManager = cls.Class.extend({
 					}
 				}
 			}
-			doc.SC = self.stats.SC3;
+			if(self.stats.member_count)doc.SC = self.stats.SC3;
 			doc.save(function(err){
 				if(err)console.log(err);
 				//console.log("Stats"+status+": "+wid);
