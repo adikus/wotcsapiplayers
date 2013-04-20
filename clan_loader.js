@@ -102,7 +102,7 @@ module.exports = ClanLoader = cls.Class.extend({
 			this.total.vehs = {};
 			for(var i=1;i<5;i++)if(!this.total.vehs[i])this.total.vehs[i]=[];
 		}
-		else this.addStatsToTotal(data.stats_current);
+		else if(data.stats_current)this.addStatsToTotal(data.stats_current);
 		this.addVehsToTotal(data.vehs);
 		this.players.push(data);
 		this.playerDone();
