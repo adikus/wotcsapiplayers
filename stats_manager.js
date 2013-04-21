@@ -78,11 +78,11 @@ module.exports = VehManager = cls.Class.extend({
 				status += " created-d";
 			}else{
 				if(self.dateMonthTS(_.last(doc.s.d.u)) == self.dateMonthTS(self.stats.u)){
-					for(var i in self.stats)doc.s.d[i][doc.s.d[i].length-1] = self.stats[i];
+					for(var i in self.stats)if(doc.s.d[i])doc.s.d[i][doc.s.d[i].length-1] = self.stats[i];
 					doc.markModified('s');
 					status += " updated-d";
 				}else{
-					for(var i in self.stats)doc.s.d[i].push(self.stats[i]);
+					for(var i in self.stats)if(doc.s.d[i])doc.s.d[i].push(self.stats[i]);
 					if(doc.s.d.u.length > Config.stats.maxDays)for(var i in self.stats)doc.s.d[i].shift();
 					doc.markModified('s');
 					status += " pushed-d";
