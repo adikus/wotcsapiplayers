@@ -88,12 +88,13 @@ module.exports = JobManager = cls.Class.extend({
 	
 	updateClanStats:function() {
 		var o = {
+			query: DBTypes.Stat.find({SC:{$exists:true}}),
 			map: function () {
 				if(this.s && this.s.d && this.s.d.member_count){
 					var s = this.s,
 						i = s.d.u.length-1,
 						mc = this.s.d.member_count[i];
-					var GPL = Math.round(s.d.GPL[i]/200)*200;
+					var GPL = Math.round(s.d.GPL[i]/20000)*20000;
 					emit("GPL:"+GPL,1);  
 					var WIN = Math.round(s.d.WIN[i]/s.d.GPL[i]*500)/5;
 					emit("WIN:"+WIN,1); 
@@ -113,11 +114,11 @@ module.exports = JobManager = cls.Class.extend({
 					emit("DPT:"+DPT,1);
 					var EXP = Math.round(s.d.EXP[i]/s.d.GPL[i]/5)*5;
 					emit("EXP:"+EXP,1);
-					var EFR = Math.round(s.d.EFR[i]/10)*10;
+					var EFR = Math.round(s.d.EFR[i]/1000)*1000;
 					emit("EFR:"+EFR,1);
-					var WN7 = Math.round(s.d.WN7[i]/10)*10;
+					var WN7 = Math.round(s.d.WN7[i]/1000)*1000;
 					emit("WN7:"+WN7,1);
-					var SC3 = Math.round(s.d.SC3[i]/250)*250;
+					var SC3 = Math.round(s.d.SC3[i]/25000)*25000;
 					emit("SC3:"+SC3,1);
 					var EFRA = Math.round(s.d.EFR[i]/mc/10)*10;
 					emit("EFRA:"+EFRA,1);
