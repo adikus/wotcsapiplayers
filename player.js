@@ -92,7 +92,8 @@ module.exports = Player = cls.Class.extend({
 			delete ret.stats_current.u;	
 		}
 		ret.status = "ok";
-		callback(ret);
+		if(callback)callback(ret);
+		else return ret;
 	},
 	
 	getUpdatedAt: function() {

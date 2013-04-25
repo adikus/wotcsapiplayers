@@ -225,6 +225,112 @@ module.exports = App = cls.Class.extend({
 		clan.save();
 	},
 	
+	top: function(options) {
+		var self = this,
+			region = options["r"]?parseInt(options["r"]):-1,
+			ret = {},
+			addVehsToTotal = function(vehs,c) {
+				if(!ret.clans[c].vehs){
+					ret.clans[c].vehs = {};
+					for(var i=1;i<5;i++)if(!ret.clans[c].vehs[i])ret.clans[c].vehs[i]=[];
+				}
+				_.each(vehs,function(typeVehs,type){
+					_.each(typeVehs.tanks,function(veh){
+						if(veh.tier == 10 || (veh.tier == 8 && veh.type == 4)){
+							var found = false;
+							for(var i in ret.clans[c].vehs[type]){
+								if(veh.name == ret.clans[c].vehs[type][i].name){
+									found = true;
+									ret.clans[c].vehs[type][i].battles += veh.battles;
+									ret.clans[c].vehs[type][i].wins += veh.wins;		
+									ret.clans[c].vehs[type][i].count++;					
+								}
+							}
+							if(!found){
+								ret.clans[c].vehs[type].push(_.clone(veh));
+								_.last(ret.clans[c].vehs[type]).count = 1;
+								delete _.last(ret.clans[c].vehs[type]).updated_at;
+							}
+						}
+					});
+				});
+			},addStatsToTotal = function(stats,c){
+				if(!ret.clans[c].stats){
+					ret.clans[c].stats = stats;
+					ret.clans[c].stats.member_count = 1;
+				}else{
+					ret.clans[c].stats.GPL += stats.GPL;
+					ret.clans[c].stats.WIN += stats.WIN;
+					ret.clans[c].stats.DEF += stats.DEF;
+					ret.clans[c].stats.SUR += stats.SUR;
+					ret.clans[c].stats.FRG += stats.FRG;
+					ret.clans[c].stats.SPT += stats.SPT;
+					ret.clans[c].stats.ACR += stats.ACR;
+					ret.clans[c].stats.DMG += stats.DMG;
+					ret.clans[c].stats.CPT += stats.CPT;
+					ret.clans[c].stats.DPT += stats.DPT;
+					ret.clans[c].stats.EXP += stats.EXP;
+					ret.clans[c].stats.WN7 += stats.WN7;
+					ret.clans[c].stats.EFR += stats.EFR;
+					ret.clans[c].stats.SC3 += stats.SC3;
+					ret.clans[c].stats.member_count++;
+				}
+			};
+		
+		return function(callback) {
+			var cond = {};
+			switch(region){
+			case 0:
+				cond._id = {$lt:500000000,$gt:0};
+				break;
+			case 1:
+				cond._id = {$lt:1000000000,$gt:500000000};
+				break;
+			case 2:
+				cond._id = {$lt:2000000000,$gt:1000000000};
+				break;
+			case 3:
+				cond._id = {$lt:2500000000,$gt:2000000000};
+				break;
+			case 4:
+				cond._id = {$lt:3000000000,$gt:2500000000};
+				break;
+			case 5:
+				cond._id = {$gt:3000000000};
+				break;
+			}
+			
+			DBTypes.Stat.find(cond).select("_id SC").sort("-SC").limit(100).exec(function(err, docs){
+				var wids = _.map(docs,function(doc){return doc._id;});
+				ret.clans = {};
+				_.each(docs,function(clan){
+					ret.clans[clan._id] = {SC:clan.SC};
+				});
+				DBTypes.Player.find({c: {$in:wids}},function(err, pdocs){
+					ret.status = "ok";
+					var players = _.map(pdocs,function(doc){var p = new Player(doc._id);p.doc = doc;return p;});
+					var clans = {};
+					_.each(players,function(player){
+						if(!clans[player.doc.c])clans[player.doc.c] = {};
+						var data = player.getData();
+						addVehsToTotal(data.vehs,player.doc.c);
+						if(data.stats_current)addStatsToTotal(data.stats_current,player.doc.c);
+					});		
+					var clans = ret.clans;
+					ret.clans = [];		
+					DBTypes.Clan.find({_id:{$in:wids}}).select("t n").exec(function(err,cdocs){
+						_.each(cdocs,function(doc){clans[doc._id].name = doc.n;clans[doc._id].tag = doc.t;});
+						
+						_.each(docs,function(clan){
+							ret.clans.push({wid:clan._id,SC:clan.SC,stats:clans[clan._id].stats,vehs:clans[clan._id].vehs,name:clans[clan._id].name,tag:clans[clan._id].tag});
+						});
+						callback(ret);
+					});
+				});
+			});
+		}
+	},
+	
 	/*
 	 * Player loading functions below
 	 */
