@@ -22,9 +22,9 @@ module.exports = Config = {
 			"600": "updateStatus", //10 minutes
 		},
 		timed: {
-			"1:30:00": "updatePlayerStats",
-			"1:40:00": "updateClanStats",
-			"1:50:00": "updateVehStats",
+			"01:30:00": "updatePlayerStats",
+			"01:40:00": "updateClanStats",
+			"01:50:00": "updateVehStats",
 		}
 	},
 	player: {

@@ -7,6 +7,7 @@ module.exports = JobManager = cls.Class.extend({
 	init: function() {
 		this.counter = 0;
 		this.counterMax = 1;
+		this.done = {};
 		for(var i in Config.jobs.periodical){
 			var period = parseInt(i);
 			this.counterMax *= period;
@@ -22,17 +23,50 @@ module.exports = JobManager = cls.Class.extend({
 		this.counter++;
 		for(var i in Config.jobs.periodical){
 			var period = parseInt(i);
-			if(this.counter % period == 0)this[Config.jobs.periodical[i]]();
+			if(this.counter % period == 0  && !this.busy)this.doJob(Config.jobs.periodical[i]);
 		}
 		if(this.counter == this.counterMax)this.counter = 0;
-		var now = new Date(),
-			tstring = now.getHours()+":"+now.getMinutes()+":"+now.getSeconds();
+		var tstring = this.getTimestamp();
 		for(var i in Config.jobs.timed){
-			if(i == tstring)this[Config.jobs.timed[i]]();
-		}		
+			var job = Config.jobs.timed[i];
+			if(i <= tstring && !this.isDone(job, i) && !this.busy)this.doJob(job,true);
+		}
+		if(this.getTimestamp() < "00:00:10")this.done = {};
 	},
 	
-	updatePlayerStats:function() {
+	getLog: function(callback){
+		fs = require('fs')
+		fs.readFile('./logs/jobs.txt', 'utf8', function (err,data) {
+		  if (err)return callback({status:"error",error:err});
+		  callback({status:"ok",jobs:data.split("\r\n")});
+		});
+	},
+	
+	doJob: function(job, log) {
+		var self = this;
+		
+		this.busy = true;
+		this[job](function(){
+			self.done[job] = new Date();
+			self.busy = false;
+		});
+		var fs = require('fs');
+		if(log)fs.appendFile('./logs/jobs.txt', this.getTimestamp()+": "+job+"\r\n", function (err) {if(err)console.log(err)});
+	},
+	
+	isDone: function(job, time){
+		if(!this.done[job])return false;
+		else{
+			return time < this.getTimestamp(this.done[job])
+		} 
+	},
+	
+	getTimestamp: function(time) {
+		var now = time?time:new Date();
+		return ("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2)+":"+("0"+now.getSeconds()).slice(-2);
+	},
+	
+	updatePlayerStats:function(done_callback) {
 		var o = {
 			map: function () {
 				if(this.sc){
@@ -83,10 +117,11 @@ module.exports = JobManager = cls.Class.extend({
 			var end = new Date(),
 				duration = end.getTime() - start.getTime();
 			console.log("Player stats updated ("+duration+" ms).");
+			done_callback();
 		});
 	},
 	
-	updateClanStats:function() {
+	updateClanStats:function(done_callback) {
 		var o = {
 			query: DBTypes.Stat.find({SC:{$exists:true}}),
 			map: function () {
@@ -147,10 +182,11 @@ module.exports = JobManager = cls.Class.extend({
 			var end = new Date(),
 				duration = end.getTime() - start.getTime();
 			console.log("Clan stats updated ("+duration+" ms).");
+			done_callback();
 		});
 	},
 	
-	updateVehStats:function() {
+	updateVehStats:function(done_callback) {
 		var o = {
 			scope:{},
 			map: function () {
@@ -195,10 +231,11 @@ module.exports = JobManager = cls.Class.extend({
 			var end = new Date(),
 				duration = end.getTime() - start.getTime();
 			console.log("Vehicle stats updated ("+duration+" ms).");
+			done_callback();
 		});
 	},
 	
-	updateStatus: function() {
+	updateStatus: function(done_callback) {
 		var times = [],
 			start = new Date(),
 			l = 13,
@@ -208,6 +245,7 @@ module.exports = JobManager = cls.Class.extend({
 					var end = new Date(),
 						duration = end.getTime() - start.getTime();
 					console.log("Status updated ("+duration+" ms).");
+					done_callback();
 				}
 			};
 		
