@@ -19,7 +19,7 @@ module.exports = Player = cls.Class.extend({
 			q.exec(function(err, doc){
 				if(!doc){
 					doc = new DBTypes.Player();
-					doc.wid = self._id;
+					doc._id = self.wid;
 				}
 				self.doc = doc;
 				callback(err);
@@ -66,7 +66,7 @@ module.exports = Player = cls.Class.extend({
 	save: function(callback){
 		var self = this;
 		
-		callback();
+		if(callback)callback();
 		this.doc.save(function(err){
 			if(err)console.log(err);
 		});

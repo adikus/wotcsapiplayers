@@ -357,7 +357,10 @@ module.exports = App = cls.Class.extend({
 				if(player.getUpdatedAt() < now.getTime() - Config.player.updateInterval || forceLoad){
 					self.loadPlayer(player,false,function(err){
 						if(err)callback({status:"error"});
-						else player.getData(callback);
+						else {
+							player.getData(callback);
+							player.save();
+						}
 					});
 				}else player.getData(callback);
 			},true);
