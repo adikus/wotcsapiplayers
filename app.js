@@ -105,9 +105,10 @@ module.exports = App = cls.Class.extend({
 		
 		if(this.loaders[wid]){
 			if(forceUpdatePlayerList){
+				self.loaders[wid].isDone();
 				DBTypes.Clan.findOne({_id:wid},function(err,doc){
 					self.updatePlayerListForClan(doc,false,function(){
-						if(retry && self.loaders[wid].isDone())self.loaders[wid].start(force);
+						if(retry && self.loaders[wid] && self.loaders[wid].isDone())self.loaders[wid].start(force);
   			    		ready_callback();
 					},true);
 				});
