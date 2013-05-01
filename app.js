@@ -170,7 +170,9 @@ module.exports = App = cls.Class.extend({
 			
 		return function(callback) {
 			self.onLoaderReady(wid,force,retry,forceUpdatePlayerList,callback,function(){
-				if(self.loaders[wid].isDone()){
+				if(!self.loaders[wid]){
+					callback({status:"error",is_done:true});
+				}else if(self.loaders[wid].isDone()){
 					callback(self.getDataFromLoader(wid,last));				
 				}else{
 					self.waitForLoader(callback,wid,last);
