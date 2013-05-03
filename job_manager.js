@@ -31,14 +31,15 @@ module.exports = JobManager = cls.Class.extend({
 			var job = Config.jobs.timed[i];
 			if(i <= tstring && !this.isDone(job, i) && !this.busy)this.doJob(job,true);
 		}
-		if(this.getTimestamp() < "00:00:10")this.done = {};
+		if(this.getTimestamp() < "00:01:00")this.done = {};
 	},
 	
 	getLog: function(callback){
+		var self = this;
 		fs = require('fs')
 		fs.readFile('./logs/jobs.txt', 'utf8', function (err,data) {
 		  if (err)return callback({status:"error",error:err});
-		  callback({status:"ok",jobs:data.split("\r\n")});
+		  callback({status:"ok",jobs:data.split("\r\n"),done:self.done});
 		});
 	},
 	
