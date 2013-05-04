@@ -96,7 +96,7 @@ module.exports = VehManager = cls.Class.extend({
 					status += " created-w";
 				}else{
 					if(self.dateMonthTS(_.last(doc.s.w.u)) == self.dateMonthTS(self.stats.u)){
-						for(var i in self.stats)doc.s.w[i][doc.s.w[i].length-1] = self.stats[i];
+						for(var i in self.stats)if(doc.s.w[i])doc.s.w[i][doc.s.w[i].length-1] = self.stats[i];
 						doc.markModified('s');
 						status += " updated-w";
 					}else{
