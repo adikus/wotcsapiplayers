@@ -10,5 +10,6 @@ module.exports = Routes = {
 	clan_stats: "clanStats",
 	set_sim: "setSimultaneousReqs",
 	top: "top",
-	jobs: "jobs"
+	jobs: "jobs",
+	errors: "errors"
 };

@@ -20,6 +20,12 @@ var clanDB = mongoose.createConnection(process.env.WOTCS_CLANDB,function(err){
 	} else console.log("Connected to MONGOLAB clan DB");
 });
 
+var ErrorSchema = mongoose.Schema({ 
+	e: 'string',
+	t: 'date'
+});
+var ErrorLog = oldDB.model('Perror', ErrorSchema);
+
 var clanSchema = mongoose.Schema({
 	_id: 'number',
 	n: 'string',
@@ -81,5 +87,6 @@ module.exports = DBTypes = {
 	Statistic: Statistic,
 	VStatistic: VStatistic,
 	CStatistic: CStatistic,
-	PlayerStatus: PlayerStatus
+	PlayerStatus: PlayerStatus,
+	ErrorLog: ErrorLog
 };

@@ -45,6 +45,23 @@ module.exports = App = cls.Class.extend({
 	},
 	
 	/*
+	 * Show errors
+	 */
+	errors: function(options) {
+		var s = options[0]?options[0]:-1;
+		
+		return function(callback) {
+			DBTypes.ErrorLog.find().sort("-t").skip(s>=0?s:0).limit(s>=0?1:1000).exec(function(err,docs){
+				ret = [];
+				_.each(docs,function(doc){
+					ret.push({e:doc.e.split("\n")[0],tr:doc.e.split("\n").slice(1),t:doc.t});
+				})
+				callback(ret);
+			});
+		}
+	},
+	
+	/*
 	 * Set how many simultaneous request per clan are alowed
 	 */
 	setSimultaneousReqs: function(options){
