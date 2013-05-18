@@ -7,7 +7,7 @@ module.exports = JobManager = cls.Class.extend({
 	init: function() {
 		this.counter = 0;
 		this.counterMax = 1;
-		this.done = {};
+		this.current = "";
 		for(var i in Config.jobs.periodical){
 			var period = parseInt(i);
 			this.counterMax *= period;
@@ -17,54 +17,88 @@ module.exports = JobManager = cls.Class.extend({
 		setInterval(function(){
 			self.step();
 		},1000);
+		
+		this.checkDBForJobs();
+	},
+	
+	getLog: function(callback) {
+		var ret = {current: this.current};
+		DBTypes.Job.find({t:{$lt:new Date()}},function(err,docs){
+			var jobs = _.map(docs,function(doc){return {job:doc.j,time:doc.t};});
+			ret.done = jobs;
+			DBTypes.Job.find({t:{$gt:new Date()}},function(err,docs){
+				var jobs = _.map(docs,function(doc){return {job:doc.j,time:doc.t};});
+				ret.planned = jobs;
+				callback(ret);
+			});
+		});
 	},
 	
 	step: function() {
+		var self = this;
+		
 		this.counter++;
 		for(var i in Config.jobs.periodical){
 			var period = parseInt(i);
 			if(this.counter % period == 0  && !this.busy)this.doJob(Config.jobs.periodical[i]);
 		}
 		if(this.counter == this.counterMax)this.counter = 0;
-		var tstring = this.getTimestamp();
-		for(var i in Config.jobs.timed){
-			var job = Config.jobs.timed[i];
-			if(i <= tstring && !this.isDone(job, i) && !this.busy)this.doJob(job,true);
+		
+		if(!this.jobs)return false;
+		for(var i in this.jobs){
+			if(this.jobs[i].t <= new Date() && !this.busy){
+				var a = i;
+				var job = this.jobs[i];
+				this.doJob(job.j,function(){
+					console.log("tu",a);
+					var newTime = new Date();
+					newTime.setTime(job.t.getTime()+24*60*60*1000);
+					var newJob = new DBTypes.Job({
+						j: job.j,
+						t: newTime
+					});
+					newJob.save();
+					self.jobs[a] = newJob;
+					console.log(self.jobs[a]);
+				});
+			}
 		}
-		if(this.getTimestamp() < "00:01:00")this.done = {};
 	},
 	
-	getLog: function(callback){
-		var self = this;
-		fs = require('fs')
-		fs.readFile('./logs/jobs.txt', 'utf8', function (err,data) {
-		  if (err)return callback({status:"error",error:err});
-		  callback({status:"ok",jobs:data.split("\r\n"),done:self.done});
-		});
-	},
-	
-	doJob: function(job, log) {
+	checkDBForJobs: function(){
 		var self = this;
 		
+		var now = new Date();
+		DBTypes.Job.find({t:{$gt:now}},function(err,docs){
+			var jobs = [];
+			if(docs.length == 0){
+				for(var i in Config.jobs.timed){
+					var time = new Date();
+					var timeParts = i.split(":");
+					time.setHours(timeParts[0]);
+					time.setMinutes(timeParts[1]);
+					time.setSeconds(timeParts[2]);
+					if(time < now)time.setTime(time.getTime()+24*60*60*1000);
+					var job = new DBTypes.Job({j:Config.jobs.timed[i],t:time});
+					jobs.push(job);
+					job.save();
+				}
+			}else{
+				jobs = docs;
+			}
+			self.jobs = jobs;
+		});
+	},
+	
+	doJob: function(job,success) {
+		var self = this;
+		this.current = job;
 		this.busy = true;
 		this[job](function(){
-			self.done[job] = new Date();
 			self.busy = false;
+			self.current = "";
+			if(success)success();
 		});
-		var fs = require('fs');
-		if(log)fs.appendFile('./logs/jobs.txt', this.getTimestamp()+": "+job+"\r\n", function (err) {if(err)console.log(err)});
-	},
-	
-	isDone: function(job, time){
-		if(!this.done[job])return false;
-		else{
-			return time < this.getTimestamp(this.done[job])
-		} 
-	},
-	
-	getTimestamp: function(time) {
-		var now = time?time:new Date();
-		return ("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2)+":"+("0"+now.getSeconds()).slice(-2);
 	},
 	
 	updatePlayerStats:function(done_callback) {

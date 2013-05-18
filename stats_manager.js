@@ -83,7 +83,7 @@ module.exports = VehManager = cls.Class.extend({
 					status += " updated-d";
 				}else{
 					for(var i in self.stats)if(doc.s.d[i])doc.s.d[i].push(self.stats[i]);
-					if(doc.s.d.u.length > Config.stats.maxDays)for(var i in self.stats)doc.s.d[i].shift();
+					if(doc.s.d.u.length > Config.stats.maxDays)for(var i in self.stats)if(doc.s.d[i])doc.s.d[i].shift();
 					doc.markModified('s');
 					status += " pushed-d";
 				}
@@ -100,8 +100,8 @@ module.exports = VehManager = cls.Class.extend({
 						doc.markModified('s');
 						status += " updated-w";
 					}else{
-						for(var i in self.stats)doc.s.w[i].push(self.stats[i]);
-						if(doc.s.w.u.length > Config.stats.maxWeeks)for(var i in self.stats)doc.s.w[i].shift();
+						for(var i in self.stats)if(doc.s.w[i])doc.s.w[i].push(self.stats[i]);
+						if(doc.s.w.u.length > Config.stats.maxWeeks)for(var i in self.stats)if(doc.s.w[i])doc.s.w[i].shift();
 						doc.markModified('s');
 						status += " pushed-w";
 					}

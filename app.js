@@ -19,6 +19,9 @@ module.exports = App = cls.Class.extend({
 		this.loadVehicleData(callback);
 	},
 	
+	/*
+	 * Show jobs log
+	 */
 	jobs: function(options) {
 		var self = this;
 		

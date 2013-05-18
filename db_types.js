@@ -26,6 +26,12 @@ var ErrorSchema = mongoose.Schema({
 });
 var ErrorLog = oldDB.model('Perror', ErrorSchema);
 
+var JobSchema = mongoose.Schema({
+	j: 'string',
+	t: 'date'
+});
+var Job = oldDB.model('Job', JobSchema);
+
 var clanSchema = mongoose.Schema({
 	_id: 'number',
 	n: 'string',
@@ -88,5 +94,6 @@ module.exports = DBTypes = {
 	VStatistic: VStatistic,
 	CStatistic: CStatistic,
 	PlayerStatus: PlayerStatus,
-	ErrorLog: ErrorLog
+	ErrorLog: ErrorLog,
+	Job: Job
 };
