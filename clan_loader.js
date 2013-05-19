@@ -98,7 +98,11 @@ module.exports = ClanLoader = cls.Class.extend({
 		data.saved_at = (new Date()).getTime();
 		if(!this.total.stats_current){
 			this.total.stats_current = _.clone(data.stats_current);
-			this.total.stats_current.member_count = 1;
+			if(this.total.stats_current)this.total.stats_current.member_count = 1;
+			else {
+				er = new DBTypes.ErrorLog({e:"No stats\n"+data.wid,t:new Date()});
+				er.save();
+			}
 			this.total.vehs = {};
 			for(var i=1;i<5;i++)if(!this.total.vehs[i])this.total.vehs[i]=[];
 		}
