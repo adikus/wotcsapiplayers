@@ -11,7 +11,6 @@ module.exports = VehManager = cls.Class.extend({
 		this.battlesTotal = 0;
 		
 		var self = this;
-		
 		_.each(this.vehs,function(veh){
 			if(VEHICLE_DATA[veh.v]){
 				var tier = VEHICLE_DATA[veh.v].l,
@@ -63,8 +62,13 @@ module.exports = VehManager = cls.Class.extend({
 		this.best = {};
 		
 		_.each(vehs,function(veh){
+			if(!VEHICLE_DATA[veh.name])self.addNewTank(veh);
+			
 			var tier = veh.level,
 				type = self.parseType(veh.class);
+				
+			if(VEHICLE_DATA[veh.name].l != tier || VEHICLE_DATA[veh.name].t != type)self.changeTank(veh);
+			
 			if(tier == tiers[type] && type > 0){
 				self.vehs.push({
 					v: veh.name,
@@ -84,7 +88,6 @@ module.exports = VehManager = cls.Class.extend({
 					updated_at: new Date()
 				});
 				self.score += self.calcScore(veh.win_count,veh.battle_count,type,tier);
-				if(!VEHICLE_DATA[veh.name])self.addNewTank(veh);
 			}
 		});
 	},
@@ -98,7 +101,7 @@ module.exports = VehManager = cls.Class.extend({
 			return 1000*factor;
 		}else if( l == 10 && t == 3 ){
 			return 900*factor;
-		}else if( l == 8 && t == 4 ){
+		}else if( l == 10 && t == 4 ){
 			return 900*factor;
 		}else return 0;
 	},
@@ -122,6 +125,23 @@ module.exports = VehManager = cls.Class.extend({
 			l: vehicle.tier,
 			ln: vehicle.lname,
 		};
+	},
+	
+	changeTank: function(veh) {
+		var self = this;
+		
+		DBTypes.Veh.findOne({name:veh.name},function(err,vehicle){
+			vehicle.tier = veh.level;
+			vehicle.type = self.parseType(veh.class);
+			vehicle.save(function(err){
+				if(err)console.log(err);
+			});
+		});
+			
+		VEHICLE_DATA[veh.name].l = veh.level;
+		VEHICLE_DATA[veh.name].t = self.parseType(veh.class);
+		
+		console.log("Type or tier changed for tank: "+veh.name,VEHICLE_DATA[veh.name]);
 	},
 	
 	parseType: function(t){

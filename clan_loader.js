@@ -134,7 +134,7 @@ module.exports = ClanLoader = cls.Class.extend({
 		var self = this;
 		_.each(vehs,function(typeVehs,type){
 			_.each(typeVehs.tanks,function(veh){
-				if(veh.tier == 10 || (veh.tier == 8 && veh.type == 4)){
+				if(veh.tier == 10){
 					var found = false;
 					for(var i in self.total.vehs[type]){
 						if(veh.name == self.total.vehs[type][i].name){

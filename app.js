@@ -267,7 +267,7 @@ module.exports = App = cls.Class.extend({
 				}
 				_.each(vehs,function(typeVehs,type){
 					_.each(typeVehs.tanks,function(veh){
-						if(veh.tier == 10 || (veh.tier == 8 && veh.type == 4)){
+						if(veh.tier == 10){
 							var found = false;
 							for(var i in ret.clans[c].vehs[type]){
 								if(veh.name == ret.clans[c].vehs[type][i].name){
@@ -379,7 +379,6 @@ module.exports = App = cls.Class.extend({
 						if(err)callback({status:"error"});
 						else {
 							player.getData(callback);
-							player.save();
 						}
 					});
 				}else player.getData(callback);

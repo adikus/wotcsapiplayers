@@ -230,7 +230,7 @@ module.exports = JobManager = cls.Class.extend({
 						var v = this.v[i],
 							name = v.v.replace('-','__');
 						try {var vData = eval(name);} catch(err) {var vData = false;}
-						if(vData && (vData.l == 10 || (vData.l == 8 && vData.t == 4))){
+						if(vData && (vData.l == 10)){
 							var B = Math.round(v.b/20)*20;
 							emit(v.v+":B:"+B,1);  
 							var W = Math.round(v.w/v.b*250)/2.5;

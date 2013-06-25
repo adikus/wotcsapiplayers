@@ -68,7 +68,7 @@ module.exports = Player = cls.Class.extend({
 		
 		if(callback)callback();
 		this.doc.save(function(err){
-			if(err)console.log(err);
+			if(err)console.log("Error saving player: ",err);
 		});
 	},
 	getData: function(callback) {
@@ -80,7 +80,6 @@ module.exports = Player = cls.Class.extend({
 			this.vm = new VehManager(this.doc.v);
 			this.best = this.vm.getBest();
 		}
-			
 		ret.name = this.doc.n;
 		ret.wid = this.doc._id;
 		ret.clan_id = this.doc.c;
