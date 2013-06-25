@@ -79,7 +79,7 @@ module.exports = VehManager = cls.Class.extend({
 				if(!self.best[type])self.best[type] = {tanks:[],tier:tiers[type]};
 				self.best[type].tanks.push({
 					name: veh.name,
-					lname: veh.localized_name,
+					lname: VEHICLE_DATA[veh.name].ln,
 					tier: tier,
 					battles: veh.battle_count,
 					nation: self.parseNation(veh.nation),
