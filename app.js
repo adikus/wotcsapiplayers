@@ -107,7 +107,7 @@ module.exports = App = cls.Class.extend({
 	
 	createLoader: function(wid, force) {
 		var self = this;
-		
+
 		console.log("Creating loader for clan "+wid);
 		this.loaders[wid] = new ClanLoader(wid);
 		this.loaders[wid].setPlayerLoadFunction(function(player,callback,beforeSave){

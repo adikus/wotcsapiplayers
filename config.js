@@ -28,6 +28,6 @@ module.exports = Config = {
 		}
 	},
 	player: {
-		updateInterval: 12*60*60*1000,	//12 hours
+		updateInterval: 6*60*60*1000,	//6 hours
 	},
 };

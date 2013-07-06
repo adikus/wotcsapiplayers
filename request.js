@@ -16,8 +16,8 @@ module.exports = Request = cls.Class.extend({
 				  path: '/community/'+method+'/'+id+'/api/'+api+'/?source_token=WG-WoT_Assistant-1.3.2',
 				  method: 'GET',
 				};
-		
-		this.request = http.request(options, function(res) {
+
+        this.request = http.request(options, function(res) {
 			var timeout = res.statusCode == 504;
 			
 			res.on('data', function (chunk) {
