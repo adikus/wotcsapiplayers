@@ -25,6 +25,7 @@ module.exports = Config = {
 			"01:30:00": "updatePlayerStats",
 			"01:40:00": "updateClanStats",
 			"01:50:00": "updateVehStats",
+			"02:00:00": "statsMaintenance",
 		}
 	},
 	player: {

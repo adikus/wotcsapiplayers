@@ -65,6 +65,22 @@ module.exports = JobManager = cls.Class.extend({
 		}
 	},
 	
+	addJob: function(timeString, name){
+		var time = new Date(),
+			timeParts = timeString.split(":"),
+			now = new Date();
+			
+		console.log('Adding job:', timeString, name);
+			
+		time.setHours(timeParts[0]);
+		time.setMinutes(timeParts[1]);
+		time.setSeconds(timeParts[2]);
+		if(time < now)time.setTime(time.getTime()+24*60*60*1000);
+		var job = new DBTypes.Job({j:name,t:time});
+		job.save();
+		return job;
+	},
+	
 	checkDBForJobs: function(){
 		var self = this;
 		
@@ -73,18 +89,16 @@ module.exports = JobManager = cls.Class.extend({
 			var jobs = [];
 			if(docs.length == 0){
 				for(var i in Config.jobs.timed){
-					var time = new Date();
-					var timeParts = i.split(":");
-					time.setHours(timeParts[0]);
-					time.setMinutes(timeParts[1]);
-					time.setSeconds(timeParts[2]);
-					if(time < now)time.setTime(time.getTime()+24*60*60*1000);
-					var job = new DBTypes.Job({j:Config.jobs.timed[i],t:time});
-					jobs.push(job);
-					job.save();
+					jobs.push(self.addJob(i, Config.jobs.timed[i]));
 				}
 			}else{
 				jobs = docs;
+				var jobsNames = _.map(jobs,function(job){
+					return job.j;
+				});
+				for(var i in Config.jobs.timed){
+					if(!_.contains(jobsNames,Config.jobs.timed[i]))jobs.push(self.addJob(i, Config.jobs.timed[i]));
+				}
 			}
 			self.jobs = jobs;
 		});
@@ -310,5 +324,48 @@ module.exports = JobManager = cls.Class.extend({
 					testForEnd();
 				});
 			});
+	},
+	
+	filterStats: function(time,skip,done,start) {
+		var count = 0,
+			self = this;
+			
+		DBTypes.Stat.find().skip(skip).limit(10000).exec(function(err, docs){
+			_.each(docs,function(doc){
+				var lastDate = doc.s.d.u[doc.s.d.u.length-1];
+				if(new Date(lastDate) < time){
+					doc.remove();
+					self.deletedCount++;
+					count++;
+				}
+			});
+			skip += 10000-count;	
+			console.log('Deleting from stats', count, self.deletedCount, skip);
+			if(skip < self.allCount)self.filterStats(time, skip, done, start);
+			else {
+				var end = new Date(),
+					duration = end.getTime() - start.getTime();
+				console.log("Stats maintenance finnished ("+duration+" ms).");
+				done();
+			}
+		});
+	},
+	
+	statsMaintenance: function(done_callback) {
+		var time = new Date(),
+			self = this;
+		this.deletedCount = 0;
+		this.allCount = 9e99;
+		
+		console.log("Stats maintenance.");
+		var start = new Date();
+		
+		DBTypes.Stat.count(function(err, count){
+			self.allCount = count;
+			console.log('Count is: '+count);
+		});
+		time.setTime(time.getTime()-(24*60*60*1000*14));
+		
+		this.filterStats(time,0,done_callback,start);
 	},
 });
