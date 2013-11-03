@@ -46,7 +46,7 @@ module.exports = Player = cls.Class.extend({
 			return true;
 		}else{
 			if(playerData.data.clan.clan)this.doc.c = playerData.data.clan.clan.id;
-				else this.doc.c = 0;
+			else if(!this.doc.c)this.doc.c = 0;
 			this.doc.n = playerData.data.name;
 			this.doc.s = '1';
 			this.doc.u = new Date();				
