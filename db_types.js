@@ -1,6 +1,7 @@
 var mongoose = require('mongoose'),
     Config = require("./config");
 
+console.log(process.env.MONGOHQ_URL || Config.db.defHost);
 var oldDB = mongoose.createConnection(process.env.MONGOHQ_URL || Config.db.defHost,function(err){
 	if (err){
 		console.log("Error MONGOHQ DB");
