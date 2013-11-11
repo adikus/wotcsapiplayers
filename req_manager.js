@@ -56,6 +56,14 @@ module.exports = ReqManager = cls.Class.extend({
 			return this.findShortest(0, 1);
 		}
 	},
+
+    queueLength: function() {
+        var l = 0;
+        _.each(this.ids, function(q){
+            l += q.length;
+        });
+        return l;
+    },
 	
 	addReq: function(cid, req, wid, success, timeout){
 		var i = this.findQueue(cid);

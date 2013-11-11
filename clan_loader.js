@@ -53,14 +53,22 @@ module.exports = ClanLoader = cls.Class.extend({
 			self.l = count;
 
 			if(self.l == 0)self.done = true;
-			if(!force)self.loadFromDB(time);
-			self.loadFromWG(time,force);
+            if(force !== false){
+                self.loadFromDB(time,force);
+            }
+            if(force !== -1){
+                self.loadFromWG(time,force);
+            }
 		});
 	},
 	
-	loadFromDB: function(time) {
-		var cond = {c: this.wid,u:{$gt:time}},
+	loadFromDB: function(time, force) {
+		var cond = {c: this.wid},
 			self = this;
+
+        if(force > -1){
+            cond.u = {$gt:time};
+        }
 
 		DBTypes.Player.find(cond,function(err,docs){
 			
