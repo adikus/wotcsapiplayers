@@ -13,7 +13,7 @@ module.exports = Config = {
 		simClans: 3,
 		reqsPerClan: 3,
 		reqsNoClan: 1,
-		maxBusy: 9,
+		maxBusy: 50,
 		deleteTimeout: 60*1000,  //1 minute
 		waitTimeout: 1000,  //1 second
 	},
