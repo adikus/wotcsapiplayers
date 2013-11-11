@@ -522,6 +522,7 @@ module.exports = App = cls.Class.extend({
 				wid:loader.wid,
 				created:loader.created,
 				last_access:loader.lastAccessed,
+                force: loader.force,
 				queue:self.rm.clans[loader.wid],
 				last_pos:self.rm.pos(loader.lastWid,loader.wid),
 				to_be_done:loader.l,

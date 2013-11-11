@@ -29,6 +29,7 @@ module.exports = ClanLoader = cls.Class.extend({
 	},
 	
 	start: function(force) {
+        this.force = force;
 		this.lastAccessed = new Date();
 		
 		this.players = [];
@@ -53,7 +54,7 @@ module.exports = ClanLoader = cls.Class.extend({
 			self.l = count;
 
 			if(self.l == 0)self.done = true;
-            if(force !== false){
+            if(force !== true){
                 self.loadFromDB(time,force);
             }
             if(force !== -1){
