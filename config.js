@@ -10,9 +10,9 @@ module.exports = Config = {
 		maxWeeks: 5,
 	},
 	loader: {
-		simClans: 3,
-		reqsPerClan: 3,
-		reqsNoClan: 1,
+        simultaneousRequests: 3,
+        waitTime: 1500,
+        idsInOneRequest: 15,
 		maxBusy: 50,
 		deleteTimeout: 60*1000,  //1 minute
 		waitTimeout: 1000,  //1 second
@@ -25,10 +25,10 @@ module.exports = Config = {
 			"01:30:00": "updatePlayerStats",
 			"01:40:00": "updateClanStats",
 			"01:50:00": "updateVehStats",
-			"02:00:00": "statsMaintenance",
+			"02:00:00": "statsMaintenance"
 		}
 	},
 	player: {
-		updateInterval: 6*60*60*1000,	//6 hours
-	},
+		updateInterval: 6*60*60*1000   //6 hours
+	}
 };

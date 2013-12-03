@@ -7,17 +7,17 @@ module.exports = VehManager = cls.Class.extend({
 	init: function(data,score,avTier) {
 		if(score!==undefined && avTier!==undefined){
 			var stats = {};
-			stats["GPL"] = data.summary.battles_count;
-			stats["WIN"] = data.summary.wins;
-			stats["DEF"] = data.summary.losses;
-			stats["SUR"] = data.summary.survived_battles;
-			stats["FRG"] = data.battles.frags;
-			stats["SPT"] = data.battles.spotted;
-			stats["ACR"] = data.battles.hits_percents;
-			stats["DMG"] = data.battles.damage_dealt;
-			stats["CPT"] = data.battles.capture_points;
-			stats["DPT"] = data.battles.dropped_capture_points;
-			stats["EXP"] = data.experience.xp;
+			stats["GPL"] = data.battles;
+			stats["WIN"] = data.wins;
+			stats["DEF"] = data.losses;
+			stats["SUR"] = data.survived_battles;
+			stats["FRG"] = data.frags;
+			stats["SPT"] = data.spotted;
+			stats["ACR"] = data.hits/data.shots*100;
+			stats["DMG"] = data.damage_dealt;
+			stats["CPT"] = data.capture_points;
+			stats["DPT"] = data.dropped_capture_points;
+			stats["EXP"] = data.xp;
 			
 			stats['WN7'] = this.getWN7(stats,avTier);
 			stats['EFR'] = this.getEFR(stats,avTier);

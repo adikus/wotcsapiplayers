@@ -1,4 +1,5 @@
-VEHICLE_DATA = [];
+VEHICLE_DATA = {};
+VEHICLE_DATA_BY_ID = {};
 
 function main(){
     var Server = require('./server'),

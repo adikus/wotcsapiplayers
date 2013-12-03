@@ -1,159 +1,194 @@
-var cls = require("./lib/class"),
-    _ = require("underscore"),
-    Config = require("./config");
+var cls = require("./lib/class");
+var _ = require("underscore");
+var Request = require("./shared/request");
+var Regions = require("./shared/regions");
     
 module.exports = ReqManager = cls.Class.extend({
-	init: function(simultaneousClans,clanMax,noClanMax){
-		this.noClanMax = noClanMax;
-		this.clanMax = clanMax;
-		this.r = [];
-		this.ids = [];
-		this.clans = {};
-		this.clanCounts = {};
-		for(var i=0;i<simultaneousClans+1;i++){
-			this.ids.push([]);
-			this.r.push(0);
-		}
-		this.successTimes = [];
-		this.times = [];
-		
-		var self = this;
-		setInterval(function(){self.step();},50);
-	},
-	
-	findShortest: function(from, to){
-		var min = this.ids[from].length,
-			mini = from;
-		for(var i=from;i<to;i++){
-			if(this.ids[i].length < min){
-				min = this.ids[i].length;
-				mini = i;
-			}
-		}
-		return mini;
-	},
-	
-	findLongest: function(from, to){
-		var max = 0,
-			maxi = false;
-		for(var i=from;i<to;i++){
-			if(this.ids[i].length > max){
-				max = this.ids[i].length;
-				maxi = i;
-			}
-		}
-		return maxi;
-	},
-	
-	findQueue: function(cid){
-		if(cid){
-			if(!this.clans[cid]){
-				this.clans[cid] = this.findShortest(1,this.ids.length);
-				if(!this.clanCounts[cid])this.clanCounts[cid] = 0;
-			}
-			return this.clans[cid];
-		}else{
-			return this.findShortest(0, 1);
-		}
+	init: function(config){
+        var self = this;
+        this.config = config;
+
+        this.currentRequests = {};
+        this.lastStart = new Date();
+        this.recentRequests = [];
+        this.failedTasks = [];
+
+		setInterval(function(){self.step();},250);
+
+        this.tasks = {};
+        this.taskID = 0;
 	},
 
-    queueLength: function() {
-        var l = 0;
-        _.each(this.ids, function(q){
-            l += q.length;
+    addReq: function(cid, subject, wid, callback) {
+        var region = Regions.getRegion(wid);
+        if(subject == 'accounts'){
+            var ret = {};
+            var next = _.after(2, function() {
+                callback(ret);
+            });
+            this.addTask(region,'account.info',wid,function(data) {
+                ret.info = data;
+                next();
+            });
+            this.addTask(region,'account.tanks',wid,function(data) {
+                ret.tanks = data;
+                next();
+            });
+        }else{
+            this.addTask(region,subject,wid,callback);
+        }
+    },
+
+    addTask: function(region, subject, wid, callback) {
+        if(!this.tasks[region+'.'+subject]){ this.tasks[region+'.'+subject] = []; }
+        else {
+            var taskIndex = this.findTask(region, subject, wid);
+            if(taskIndex > -1){
+                this.tasks[region+'.'+subject][taskIndex].callbacks.push(callback);
+                return;
+            }
+        }
+        this.tasks[region+'.'+subject].push({
+            callbacks: [callback],
+            wid: wid,
+            added: new Date()
         });
-        return l;
+    },
+
+    findTask: function(region, subject, wid) {
+        for(var i in this.tasks[region+'.'+subject]){
+            if(this.tasks[region+'.'+subject][i].wid == wid){ return i; }
+        }
+        return -1;
+    },
+
+    taskCount: function() {
+        var sum = 0;
+        _(this.tasks).each(function(tasks) {
+            sum += tasks.length;
+        });
+        return sum + this.failedTasks.length;
+    },
+
+    queueLength: function() {
+        return this.taskCount();
+    },
+
+    getTask: function() {
+        var winningTask = {score: -1};
+        _(this.tasks).each(function(tasks, key) {
+            if(tasks.length == 0){ return; }
+            var score = ((new Date()).getTime() - tasks[0].added.getTime())*tasks.length;
+            if(score > winningTask.score){
+                winningTask = {
+                    score: score,
+                    key: key
+                };
+            }
+        });
+
+        var IDs = [];
+        var callbacks = [];
+        while(IDs.length < this.config.idsInOneRequest && this.tasks[winningTask.key].length > 0){
+            var task = this.tasks[winningTask.key].shift();
+            IDs.push(task.wid);
+            callbacks.push.apply(callbacks, task.callbacks);
+        }
+        var split = winningTask.key.split('.');
+        return {
+            ID: this.taskID++,
+            region: split[0],
+            subject: split[1],
+            method: split[2],
+            callbacks: callbacks,
+            IDs: IDs
+        }
     },
 	
-	addReq: function(cid, req, wid, success, timeout){
-		var i = this.findQueue(cid);
-		if(cid)this.clanCounts[cid]++;
-		this.ids[i].push({r:req,w:wid,s:success,t:timeout, c:cid});
-		return this.ids[i].length-1;
-	},
-	
 	step: function(){
-		for(var i=1;i<this.ids.length;i++){
-			while(this.r[i] < this.clanMax && this.ids[i].length > 0){
-				this.startRequest(this.ids[i].shift(),i);
-			}
-			if(this.ids[i].length == 0 && this.r[i] < this.clanMax){
-				var q = this.findLongest(1,this.ids.length);
-				if(q){
-					this.startRequest(this.ids[q].shift(),i);
-				}
-			}
-		}
-		while(this.r[0] < this.noClanMax && this.ids[0].length > 0){
-			this.startRequest(this.ids[0].shift(),0);
-		}
-		
-		var now = new Date();
-		if(this.successTimes[0] && this.successTimes[0].getTime() + 10000 < now.getTime())this.successTimes.shift();
+        var duration = (new Date()).getTime() - this.lastStart.getTime();
+        if(this.taskCount() > 0 && _(this.currentRequests).size() < this.config.simultaneousRequests && duration > this.config.waitTime){
+            var task;
+            if(this.failedTasks.length > 0){
+                task = this.failedTasks.shift();
+            }else{
+                task = this.getTask();
+            }
+            this.doTask(task);
+        }
+
 	},
-	
-	startRequest: function(id,q){
-		var self = this,
-			time = new Date();
-		
-		req = new Request(id.r,id.w);
-			
-		req.onSuccess(function(data){
-			id.s(data);
-			self.r[q]--;
-			if(id.c)self.clanCounts[id.c]--;
-			if(self.clanCounts[id.c] == 0){
-				delete self.clanCounts[id.c];
-				delete self.clans[id.c];
-			}
-			self.addTime(new Date(),time);
-		});
-		
-		req.onTimeout(function(){
-			id.t();
-			self.r[q]--;
-		});
-		
-		this.r[q]++;
-	},
-	
-	pos: function(wid,cid){
-		var ret = 0,
-			q = this.clans[cid];
-		
-		var f = _.find(this.ids[q],function(i){
-			ret++;
-			return i.w == wid;
-		});
-		if(!f)return -1;
-		return ret;
-	},
-	
-	getAverageTime: function() {
-		var total = _.reduce(this.times, function(memo, time){ return memo + time; }, 0);
-		return this.times.length > 0 ? total / this.times.length : 0;
-	},
-	
-	speed: function(){
-		if(this.successTimes.length > 0){
-			var diff = this.getDiff(this.successTimes[0],_.last(this.successTimes))/1000;
-			return diff == 0 ? 0 : this.successTimes.length / diff;
-		} else return 0;
-	},
-	
-	setSimultaneous: function(simultaneous) {
-		this.clanMax = simultaneous;
-	},
-	
-	getDiff: function(t1,t2) {
-		return t2.getTime() - t1.getTime();
-	},
-	
-	addTime: function(t,s) {
-		if(this.successTimes.length > 0 && this.getDiff(_.last(this.successTimes),t) > 30000)this.successTimes = [];
-		this.successTimes.push(t);
-		
-		this.times.push(this.getDiff(s,t));
-		if(this.times.length > 100)this.times.shift();
-	},
+
+    doTask: function(task) {
+        var start = new Date();
+        var subject = task.subject;
+        var method = task.method;
+        var fields = null;
+        if(subject == 'account' && method == 'info'){ fields = 'statistics.all,clan.clan_id,nickname';}
+        if(subject == 'account' && method == 'tanks'){ fields = 'statistics.battles,statistics.wins,tank_id,mark_of_mastery'; }
+
+        var req = new Request(subject, method, task.IDs, fields);
+        this.currentRequests[task.ID] = req;
+        var self = this;
+        req.onSuccess(function(data) {
+            self.executeCallbacks(task.callbacks, data);
+            self.calcReqStats(start,task.IDs.length);
+            delete self.currentRequests[task.ID];
+        });
+
+        req.onError(function(error){
+            self.failTask(task, error);
+            self.calcReqStats(start,0);
+            delete self.currentRequests[task.ID];
+        });
+    },
+
+    failTask: function(task, error) {
+        this.failedTasks.push(task);
+    },
+
+    calcReqStats: function(start, count){
+        var now = new Date();
+        var duration = now.getTime() - start.getTime();
+        this.recentRequests.push({
+            duration: duration,
+            start: start,
+            finish: now,
+            count: count
+        });
+        while(this.recentRequests.length > 0 && now.getTime() - this.recentRequests[0].finish.getTime() > 30*1000){
+            this.recentRequests.shift();
+        }
+
+    },
+
+    executeCallbacks: function(callbacks, data) {
+        _(callbacks).each(function(callback){
+            callback(data);
+        });
+    },
+
+    pos: function(wid, cid){
+        var region = Regions.getRegion(wid);
+        var taskIndex1 = Math.max(this.findTask(region, 'account.info', wid),0);
+        var taskIndex2 = Math.max(this.findTask(region, 'account.tanks', wid),0);
+        return Math.max(taskIndex1,taskIndex2)*_(this.tasks).size();
+    },
+
+    speed: function() {
+        if(this.recentRequests.length == 0){
+            return 0;
+        }else{
+            var count = _.reduce(_(this.recentRequests).pluck('count'), function(memo, num){ return memo + num; }, 0);
+            var duration = (_(this.recentRequests).last().finish.getTime() - this.recentRequests[0].start.getTime())/1000;
+            return count / duration;
+        }
+    },
+
+    getAverageTime: function() {
+        return this.recentRequests.length > 0 ?
+            _.reduce(_(this.recentRequests).pluck('duration'), function(memo, num){ return memo + num; }, 0)/this.recentRequests.length
+            : 0;
+    }
+
 });

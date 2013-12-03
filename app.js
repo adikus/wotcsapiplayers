@@ -14,7 +14,7 @@ module.exports = App = cls.Class.extend({
 		var self = this;
 		console.log('Initialising app');
 		this.loaders = {};
-		this.rm = new ReqManager(Config.loader.simClans,Config.loader.reqsPerClan,Config.loader.reqsNoClan);
+		this.rm = new ReqManager(Config.loader);
 		this.jm = new JobManager();
 		this.loadVehicleData(callback);
 	},
@@ -43,7 +43,10 @@ module.exports = App = cls.Class.extend({
 					ln: doc.lname,
 				};
 			});
-			if(callback)callback();
+            DBTypes.Vehicle.find(function(err, docs) {
+                VEHICLE_DATA_BY_ID = docs[0].data;
+                if(callback)callback();
+            });
 		});
 	},
 	
@@ -523,7 +526,6 @@ module.exports = App = cls.Class.extend({
 				created:loader.created,
 				last_access:loader.lastAccessed,
                 force: loader.force,
-				queue:self.rm.clans[loader.wid],
 				last_pos:self.rm.pos(loader.lastWid,loader.wid),
 				to_be_done:loader.l,
 				reqs_pending:loader.reqsP,

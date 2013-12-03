@@ -50,8 +50,19 @@ module.exports = VehManager = cls.Class.extend({
 		var tiers = {},
 			self = this;
 		_.each(vehs,function(veh){
-			var tier = veh.level,
-				type = self.parseType(veh.class);
+            var tankInfo = VEHICLE_DATA_BY_ID[veh.tank_id];
+            if(!tankInfo){
+                var tier = 0;
+                var type = 5;
+            }else{
+                var tier = tankInfo.level;
+                var type = self.parseType(tankInfo.type);
+                veh.name = tankInfo.name.split(':')[1];
+                veh.level = tankInfo.level;
+                veh.class = tankInfo.type;
+            }
+            veh.battle_count = veh.statistics.battles;
+            veh.win_count = veh.statistics.wins;
 			
 			self.tierTotal += tier*veh.battle_count;
 			self.battlesTotal += veh.battle_count;

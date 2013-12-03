@@ -60,6 +60,12 @@ var vehSchema = mongoose.Schema({
 });
 var VehDB = oldDB.model('Veh', vehSchema);
 
+var vehicleSchema = mongoose.Schema({
+    data: 'mixed',
+    updated_at: 'date'
+});
+var VehicleDB = oldDB.model('Vehicle', vehicleSchema);
+
 var statisticSchema = mongoose.Schema({ 
 	_id: 'string',
 	value: 'number'
@@ -88,6 +94,7 @@ var Player = playerDB.model('Player', newPlayerSchema);
 module.exports = DBTypes = {
 	Clan: Clan,
 	Veh: VehDB,
+    Vehicle: VehicleDB,
 	Player: Player,
 	Stat: Stat,
 	Statistic: Statistic,

@@ -31,31 +31,33 @@ module.exports = Player = cls.Class.extend({
 	
 	parseData: function(data){
 		var self = this;
-		
+
+        var playerData = null;
+        var tankData = null;
 		try{
-	        playerData = JSON.parse(data);
+            playerData = JSON.parse(data.info).data[this.wid];
+            tankData = JSON.parse(data.tanks).data[this.wid];
 	    }catch(e){
 	        //console.log(e);
 	        return false;
 	    }
 		
-		if(playerData.status == "error"){
-			console.log(playerData.status_code+": "+this.wid);
-			this.doc.s = playerData.status_code;
+		if(!playerData){
+			this.doc.s = -1;
 			this.doc.u = new Date();
 			return true;
 		}else{
-			if(playerData.data.clan.clan)this.doc.c = playerData.data.clan.clan.id;
+			if(playerData.clan.clan_id)this.doc.c = playerData.clan.clan_id;
 			else if(!this.doc.c)this.doc.c = 0;
-			this.doc.n = playerData.data.name;
+			this.doc.n = playerData.nickname;
 			this.doc.s = '1';
-			this.doc.u = new Date();				
+			this.doc.u = new Date();
 			this.vm = new VehManager(this.doc.v);
-			this.vm.parseVehs(playerData.data.vehicles);
+			this.vm.parseVehs(tankData);
 			this.doc.v = this.vm.getVehs();
 			this.doc.markModified('v');
 			this.best = this.vm.getBest();
-			this.sm = new StatsManager(playerData.data,this.vm.getScore(),this.vm.getAvTier());
+			this.sm = new StatsManager(playerData.statistics.all,this.vm.getScore(),this.vm.getAvTier());
 			this.doc.sc = this.sm.getStats();
 			this.doc.markModified('sc');
 			this.sm.save(this.wid);
