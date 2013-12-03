@@ -60,6 +60,8 @@ module.exports = VehManager = cls.Class.extend({
                 veh.name = tankInfo.name.split(':')[1];
                 veh.level = tankInfo.level;
                 veh.class = tankInfo.type;
+                veh.nation = tankInfo.nation;
+                veh.lname = tankInfo.name_i18n;
             }
             veh.battle_count = veh.statistics.battles;
             veh.win_count = veh.statistics.wins;
@@ -78,7 +80,7 @@ module.exports = VehManager = cls.Class.extend({
 			var tier = veh.level,
 				type = self.parseType(veh.class);
 				
-			if(VEHICLE_DATA[veh.name].l != tier || VEHICLE_DATA[veh.name].t != type)self.changeTank(veh);
+			if(VEHICLE_DATA[veh.name].l != tier || VEHICLE_DATA[veh.name].t != type || VEHICLE_DATA[veh.name].ln != veh.lname)self.changeTank(veh);
 			
 			if(tier == tiers[type] && type > 0){
 				self.vehs.push({
@@ -144,11 +146,13 @@ module.exports = VehManager = cls.Class.extend({
 		DBTypes.Veh.findOne({name:veh.name},function(err,vehicle){
 			vehicle.tier = veh.level;
 			vehicle.type = self.parseType(veh.class);
+      vehicle.lname = veh.lname;
 			vehicle.save(function(err){
 				if(err)console.log(err);
 			});
 		});
 			
+    VEHICLE_DATA[veh.name].ln = veh.lname;
 		VEHICLE_DATA[veh.name].l = veh.level;
 		VEHICLE_DATA[veh.name].t = self.parseType(veh.class);
 		
