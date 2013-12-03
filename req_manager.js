@@ -29,17 +29,17 @@ module.exports = ReqManager = cls.Class.extend({
             this.addTask(region,'account.info',wid,function(data) {
                 ret.info = data;
                 next();
-            });
+            }, !cid);
             this.addTask(region,'account.tanks',wid,function(data) {
                 ret.tanks = data;
                 next();
-            });
+            }, !cid);
         }else{
             this.addTask(region,subject,wid,callback);
         }
     },
 
-    addTask: function(region, subject, wid, callback) {
+    addTask: function(region, subject, wid, callback, priority) {
         if(!this.tasks[region+'.'+subject]){ this.tasks[region+'.'+subject] = []; }
         else {
             var taskIndex = this.findTask(region, subject, wid);
@@ -48,11 +48,16 @@ module.exports = ReqManager = cls.Class.extend({
                 return;
             }
         }
-        this.tasks[region+'.'+subject].push({
+        var task = {
             callbacks: [callback],
             wid: wid,
             added: new Date()
-        });
+        };
+        if(priority){
+            this.tasks[region+'.'+subject].unshift(task);
+        }else{
+            this.tasks[region+'.'+subject].push(task);
+        }
     },
 
     findTask: function(region, subject, wid) {
