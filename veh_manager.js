@@ -80,7 +80,8 @@ module.exports = VehManager = cls.Class.extend({
 			var tier = veh.level,
 				type = self.parseType(veh.class);
 				
-			if(VEHICLE_DATA[veh.name].l != tier || VEHICLE_DATA[veh.name].t != type || VEHICLE_DATA[veh.name].ln != veh.lname)self.changeTank(veh);
+			if(VEHICLE_DATA[veh.name].l != tier || VEHICLE_DATA[veh.name].t != type || 
+        VEHICLE_DATA[veh.name].ln != veh.lname || VEHICLE_DATA[veh.name].n != self.parseNation(veh.nation))self.changeTank(veh);
 			
 			if(tier == tiers[type] && type > 0){
 				self.vehs.push({
@@ -146,17 +147,19 @@ module.exports = VehManager = cls.Class.extend({
 		DBTypes.Veh.findOne({name:veh.name},function(err,vehicle){
 			vehicle.tier = veh.level;
 			vehicle.type = self.parseType(veh.class);
-      vehicle.lname = veh.lname;
+      vehicle.lname = veh.lname;     
+      vehicle.nation = self.parseNation(veh.nation);
 			vehicle.save(function(err){
 				if(err)console.log(err);
 			});
 		});
 			
     VEHICLE_DATA[veh.name].ln = veh.lname;
-		VEHICLE_DATA[veh.name].l = veh.level;
+		VEHICLE_DATA[veh.name].l = veh.level;   
+		VEHICLE_DATA[veh.name].n = self.parseNation(veh.nation);
 		VEHICLE_DATA[veh.name].t = self.parseType(veh.class);
 		
-		console.log("Type or tier changed for tank: "+veh.name,VEHICLE_DATA[veh.name]);
+		console.log("Type, tier, name or nation changed for tank: "+veh.name,VEHICLE_DATA[veh.name]);
 	},
 	
 	parseType: function(t){
