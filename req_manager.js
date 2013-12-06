@@ -125,7 +125,8 @@ module.exports = ReqManager = cls.Class.extend({
 	},
 
     doTask: function(task) {
-        var start = new Date();
+        var start = new Date();     
+        this.lastStart = start;
         var subject = task.subject;
         var method = task.method;
         var fields = null;
