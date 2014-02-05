@@ -62,7 +62,6 @@ module.exports = VehManager = cls.Class.extend({
                 veh.class = tankInfo.type;
                 veh.nation = tankInfo.nation;
                 veh.lname = tankInfo.name_i18n;
-                if( veh.nation == 'japan')console.log('JAP tank,',tankInfo.name_i18n);
             }
             veh.battle_count = veh.statistics.battles;
             veh.win_count = veh.statistics.wins;
