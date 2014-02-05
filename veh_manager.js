@@ -62,6 +62,7 @@ module.exports = VehManager = cls.Class.extend({
                 veh.class = tankInfo.type;
                 veh.nation = tankInfo.nation;
                 veh.lname = tankInfo.name_i18n;
+                if( veh.nation == 'japan')console.log('JAP tank,',tankInfo.name_i18n);
             }
             veh.battle_count = veh.statistics.battles;
             veh.win_count = veh.statistics.wins;
@@ -126,7 +127,7 @@ module.exports = VehManager = cls.Class.extend({
 				lname: veh.localized_name,
 				tier: veh.level,
 				nation: this.parseNation(veh.nation),
-				type: this.parseType(veh.class),
+				type: this.parseType(veh.class)
 		});
 			
 		vehicle.save(function(err){
@@ -137,7 +138,7 @@ module.exports = VehManager = cls.Class.extend({
 			t: vehicle.type,
 			n: vehicle.nation,
 			l: vehicle.tier,
-			ln: vehicle.lname,
+			ln: vehicle.lname
 		};
 	},
 	
