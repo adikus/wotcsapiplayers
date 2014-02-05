@@ -203,6 +203,9 @@ module.exports = VehManager = cls.Class.extend({
 			case 'uk':
 				return 6;
 				break;
+            case 'japan':
+                return 7;
+                break;
 		}
 	},
 });
