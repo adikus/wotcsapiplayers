@@ -126,7 +126,7 @@ module.exports = App = cls.Class.extend({
 	onLoaderReady: function(wid, force, retry, forceUpdatePlayerList, callback, ready_callback) {
 		var self = this;
 
-        force = this.rm.queueLength() < 250 ? force : -1;
+        force = this.rm.queueLength() < 600 ? force : -1;
 		
 		if(this.loaders[wid]){
 			if(forceUpdatePlayerList){
