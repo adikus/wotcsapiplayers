@@ -57,7 +57,7 @@ module.exports = VehManager = cls.Class.extend({
             } else {
                 var tier = tankInfo.level;
                 var type = self.parseType(tankInfo.type);
-                veh.name = tankInfo.name.split(':')[1];
+                veh.name = (tankInfo.new_name || tankInfo.name).split(':')[1];
                 veh.level = tankInfo.level;
                 veh.class = tankInfo.type;
                 veh.nation = tankInfo.nation;

@@ -130,7 +130,7 @@ module.exports = ReqManager = cls.Class.extend({
         var subject = task.subject;
         var method = task.method;
         var fields = null;
-        if(subject == 'account' && method == 'info'){ fields = 'statistics.all,clan.clan_id,nickname';}
+        if(subject == 'account' && method == 'info'){ fields = 'statistics.all,nickname';}
         if(subject == 'account' && method == 'tanks'){ fields = 'statistics.battles,statistics.wins,tank_id,mark_of_mastery'; }
 
         var req = new Request(subject, method, task.IDs, fields);

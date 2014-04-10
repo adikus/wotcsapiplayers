@@ -72,6 +72,7 @@ var statisticSchema = mongoose.Schema({
 });
 var Statistic = playerDB.model('Statistic', statisticSchema);
 var VStatistic = playerDB.model('VStatistic', statisticSchema);
+//var VStatistic = playerDB.model('TestStatistic', statisticSchema);
 var CStatistic = oldDB.model('CStatistic', statisticSchema);
 
 var playerStatusSchema = mongoose.Schema({ 

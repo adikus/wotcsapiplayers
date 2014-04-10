@@ -19,6 +19,9 @@ module.exports = JobManager = cls.Class.extend({
 		},1000);
 		
 		this.checkDBForJobs();
+        /*this.updateVehStatsTest(function(){
+
+        }); */
 	},
 	
 	getLog: function(callback) {
@@ -368,4 +371,49 @@ module.exports = JobManager = cls.Class.extend({
 		
 		this.filterStats(time,0,done_callback,start);
 	},
+
+    updateVehStatsTest:function(done_callback) {
+        var o = {
+                scope:{},
+                map: function () {
+                    if(this.v){
+                        for(var i in this.v){
+                            var v = this.v[i];
+                            var limit = new Date();
+                            limit.setDate(limit.getDate() - 15);
+                            if(v.v == 'IS-7' && v.b > 25 && this.u > limit){
+                                var B = Math.round(v.b/20)*20;
+                                emit(v.v+":B:"+B,1);
+                                var W = Math.round(v.w/v.b*250)/2.5;
+                                emit(v.v+":W:"+W,1);
+                                if(this.sc){
+                                    var percentage = v.w/v.b*100,
+                                        factor = (percentage-35)/15*Math.min(v.b,75)/75,
+                                        S = Math.round(this.sc.WN7/1500*(1000)*factor/25)*25;
+                                    emit(v.v+":S:"+S,1);
+                                }
+                            }
+                        }
+                    }
+                },
+                reduce: function (k, vals) {
+                    var ret = 0;
+                    for(i in vals){
+                        ret += vals[i];
+                    }
+                    return ret;
+                },
+                out:{replace: 'teststatistics'}
+            },
+            start = new Date();
+        console.log("Updating vehicle test stats.");
+
+        DBTypes.Player.mapReduce(o,function (err, results) {
+            if(err)console.log(err);
+            var end = new Date(),
+                duration = end.getTime() - start.getTime();
+            console.log("Vehicle test stats updated ("+duration+" ms).");
+            done_callback();
+        });
+    },
 });

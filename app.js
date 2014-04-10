@@ -40,7 +40,7 @@ module.exports = App = cls.Class.extend({
 					t: doc.type,
 					n: doc.nation,
 					l: doc.tier,
-					ln: doc.lname,
+					ln: doc.lname
 				};
 			});
             DBTypes.Vehicle.find(function(err, docs) {
@@ -463,26 +463,26 @@ module.exports = App = cls.Class.extend({
 	},
 	
 	vehStats: function(options) {
-		return function(callback) {
-			var ret = {lengths:{},counts:{},stats:{}};
-			DBTypes.VStatistic.find(function(err,docs){
-				_.each(docs,function(doc){
-					var veh = doc._id.split(":")[0],
-						t = doc._id.split(":")[1],
-						v = parseFloat(doc._id.split(":")[2])
-					if(!ret.stats[veh]){
-						ret.stats[veh] = {B:{},W:{},S:{}};
-						ret.lengths[veh] = {B:0,W:0,S:0};
-						ret.counts[veh] = 0;
-					}
-					ret.lengths[veh][t]++;
-					if(t == "B")ret.counts[veh] += doc.value;
-					ret.stats[veh][t][v] = doc.value;
-				});
-				callback(ret);
-			});
-		}
-	},
+       return function(callback) {
+            var ret = {lengths:{},counts:{},stats:{}};
+            DBTypes.VStatistic.find(function(err,docs){
+                _.each(docs,function(doc){
+                    var veh = doc._id.split(":")[0],
+                        t = doc._id.split(":")[1],
+                        v = parseFloat(doc._id.split(":")[2])
+                    if(!ret.stats[veh]){
+                        ret.stats[veh] = {B:{},W:{},S:{}};
+                        ret.lengths[veh] = {B:0,W:0,S:0};
+                        ret.counts[veh] = 0;
+                    }
+                    ret.lengths[veh][t]++;
+                    if(t == "B")ret.counts[veh] += doc.value;
+                    ret.stats[veh][t][v] = doc.value;
+                });
+                callback(ret);
+            });
+        }
+    },
 	
 	/*
 	 * Status functions below
