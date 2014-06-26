@@ -17,7 +17,7 @@ module.exports = VehManager = cls.Class.extend({
                     type = VEHICLE_DATA[veh.v].t;
                 if (!self.best[type])self.best[type] = {tanks: [], tier: tier};
                 self.best[type].tanks.push({
-                    name: veh.v,
+                    name: self.getRealName(veh.v),
                     lname: VEHICLE_DATA[veh.v].ln,
                     tier: tier,
                     battles: veh.b,
@@ -28,6 +28,15 @@ module.exports = VehManager = cls.Class.extend({
                 });
             }
         });
+    },
+
+    getRealName: function(name) {
+        var realNames = {
+            'AMX_50_68t': 'f10_AMX_50B',
+            'Bat_Chatillon155': 'Bat_Chatillon155_58'
+        };
+        if(realNames[name])name = realNames[name];
+        return name;
     },
 
     getVehs: function () {
