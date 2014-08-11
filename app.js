@@ -198,7 +198,7 @@ module.exports = App = cls.Class.extend({
 				if(!self.loaders[wid]){
 					callback({status:"error",is_done:true});
 				}else if(self.loaders[wid].isDone()){
-					callback(self.getDataFromLoader(wid,last));				
+					callback(self.getDataFromLoader(wid,last));
 				}else{
 					self.waitForLoader(callback,wid,last);
 				}
@@ -377,7 +377,7 @@ module.exports = App = cls.Class.extend({
 			now = new Date(),
 			self = this;
 			
-		return function(callback) {			
+		return function(callback) {
 			player.find(function(){
 				if(player.getUpdatedAt() < now.getTime() - Config.player.updateInterval || forceLoad){
 					self.loadPlayer(player,false,function(err){
@@ -536,6 +536,10 @@ module.exports = App = cls.Class.extend({
 		ret.reqs_pending_total = r;
 		ret.saves_pending_total = s;
 		ret.average_req_time = Math.round(this.rm.getAverageTime()*100)/100 + " ms";
+    ret.request_manager = {
+		queues: this.rm.queueLengths(),
+		current: this.rm.getCurrentReqs()
+    };
 		return ret;
 	},
 });

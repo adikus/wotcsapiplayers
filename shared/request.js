@@ -5,6 +5,7 @@ var cls = require("./../lib/class"),
 module.exports = Request = cls.Class.extend({
     init: function(subject, method,IDs,fields){
         this.data = '';
+		this.startedAt = new Date();
 
         this.IDs = IDs.toString();
         this.host = this.getHost(this.IDs.split(',')[0]);

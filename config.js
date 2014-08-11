@@ -10,9 +10,9 @@ module.exports = Config = {
 		maxWeeks: 5,
 	},
 	loader: {
-        simultaneousRequests: 3,
+        simultaneousRequests: 4,
         waitTime: 1500,
-        idsInOneRequest: 15,
+        idsInOneRequest: 30,
 		maxBusy: 50,
 		deleteTimeout: 60*1000,  //1 minute
 		waitTimeout: 1000,  //1 second

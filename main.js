@@ -20,12 +20,12 @@ function main(){
   	});
   	
   	process.on('uncaughtException',function(E){
-		e = new DBTypes.ErrorLog({e:E.stack,t:new Date()});
-		e.save(function(){
-			console.log(E);
-			process.exit(1);
-		});
-	});
+      e = new DBTypes.ErrorLog({e:E.stack,t:new Date()});
+      e.save(function(){
+        console.log(E);
+        process.exit(1);
+      });
+    });
 }
 
 main();

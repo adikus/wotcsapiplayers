@@ -79,6 +79,25 @@ module.exports = ReqManager = cls.Class.extend({
         return this.taskCount();
     },
 
+    queueLengths: function() {
+		var ret = {};
+		_(this.tasks).each(function(tasks, key) {
+			ret[key] = {
+				length: tasks.length,
+				added_at: tasks.length && tasks[0].added
+			};
+		});
+		return ret;
+    },
+
+	getCurrentReqs: function() {
+		var ret = {};
+		_(this.currentRequests).each(function(req, id) {
+			ret[id] = req.startedAt;
+		});
+		return ret;
+	},
+
     getTask: function() {
         var winningTask = {score: -1};
         _(this.tasks).each(function(tasks, key) {
@@ -112,7 +131,7 @@ module.exports = ReqManager = cls.Class.extend({
 	
 	step: function(){
         var duration = (new Date()).getTime() - this.lastStart.getTime();
-        if(this.taskCount() > 0 && _(this.currentRequests).size() < this.config.simultaneousRequests && duration > this.config.waitTime){
+        if(this.taskCount() > 0 && _(this.currentRequests).size() < this.config.simultaneousRequests && duration > (this.config.waitTime / this.config.simultaneousRequests)){
             var task;
             if(this.failedTasks.length > 0){
                 task = this.failedTasks.shift();
