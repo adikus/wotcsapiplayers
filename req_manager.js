@@ -90,6 +90,10 @@ module.exports = ReqManager = cls.Class.extend({
 		return ret;
     },
 
+	getFailedLength: function() {
+		return this.failedTasks.length;
+	},
+
 	getCurrentReqs: function() {
 		var ret = {};
 		_(this.currentRequests).each(function(req, id) {

@@ -538,7 +538,8 @@ module.exports = App = cls.Class.extend({
 		ret.average_req_time = Math.round(this.rm.getAverageTime()*100)/100 + " ms";
     ret.request_manager = {
 		queues: this.rm.queueLengths(),
-		current: this.rm.getCurrentReqs()
+		current: this.rm.getCurrentReqs(),
+		failed: this.rm.getFailedLength()
     };
 		return ret;
 	},
