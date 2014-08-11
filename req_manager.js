@@ -166,15 +166,29 @@ module.exports = ReqManager = cls.Class.extend({
         });
 
         req.onError(function(error){
-            self.failTask(task, error);
+            self.failTask(task);
             self.calcReqStats(start,0);
             delete self.currentRequests[task.ID];
         });
+
+		setTimeout(function(){
+			if(self.currentRequests[task.ID]){
+				self.failTask(task);
+				self.calcReqStats(start,0);
+				delete self.currentRequests[task.ID];
+			}
+		},60000);
     },
 
-    failTask: function(task, error) {
-        this.failedTasks.push(task);
-    },
+	failTask: function(task) {
+		if(!task.retries){
+			task.retries = 0;
+		}
+		task.retries++;
+		if(task.retries < 3){
+			this.failedTasks.push(task);
+		}
+	},
 
     calcReqStats: function(start, count){
         var now = new Date();
