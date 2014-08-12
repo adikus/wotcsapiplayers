@@ -540,7 +540,7 @@ module.exports = App = cls.Class.extend({
 		queues: this.rm.queueLengths(),
 		current: this.rm.getCurrentReqs(),
 		failed: this.rm.getFailedLength(),
-		wait_time: this.rm.waitTime
+		wait_time: Math.round(this.rm.waitTime)
     };
 		return ret;
 	},
