@@ -539,7 +539,8 @@ module.exports = App = cls.Class.extend({
     ret.request_manager = {
 		queues: this.rm.queueLengths(),
 		current: this.rm.getCurrentReqs(),
-		failed: this.rm.getFailedLength()
+		failed: this.rm.getFailedLength(),
+		wait_time: this.rm.waitTime
     };
 		return ret;
 	},

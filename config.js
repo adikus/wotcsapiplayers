@@ -11,11 +11,12 @@ module.exports = Config = {
 	},
 	loader: {
         simultaneousRequests: 4,
-        waitTime: 1500,
+		waitTime: 650,
+		waitMultiplier: 1.05,
         idsInOneRequest: 30,
 		maxBusy: 50,
 		deleteTimeout: 60*1000,  //1 minute
-		waitTimeout: 1000,  //1 second
+		waitTimeout: 1000  //1 second
 	},
 	jobs: {
 		periodical: {
