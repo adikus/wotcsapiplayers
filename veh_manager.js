@@ -94,7 +94,6 @@ module.exports = VehManager = cls.Class.extend({
                 VEHICLE_DATA[veh.name].ln != veh.lname || VEHICLE_DATA[veh.name].n != self.parseNation(veh.nation))self.changeTank(veh);
 
             if (tier == tiers[type] && type > 0) {
-				console.log(veh.name);
                 self.vehs.push({
                     v: veh.name,
                     w: veh.win_count,
