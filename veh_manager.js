@@ -63,6 +63,7 @@ module.exports = VehManager = cls.Class.extend({
             if (!tankInfo) {
                 var tier = 0;
                 var type = 5;
+				console.log('Unable to find info for tank', veh);
             } else {
                 var tier = tankInfo.level;
                 var type = self.parseType(tankInfo.type);
@@ -93,6 +94,7 @@ module.exports = VehManager = cls.Class.extend({
                 VEHICLE_DATA[veh.name].ln != veh.lname || VEHICLE_DATA[veh.name].n != self.parseNation(veh.nation))self.changeTank(veh);
 
             if (tier == tiers[type] && type > 0) {
+				console.log(veh.name);
                 self.vehs.push({
                     v: veh.name,
                     w: veh.win_count,
