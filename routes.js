@@ -2,7 +2,7 @@ module.exports = routes = {
     '/': 'status#index',
     '/errors': 'status#errors',
 
-    '/clans/top': 'clans#top',             //TODO
+    '/clans/top': 'clans#top',
     '/clans/loaders': 'clans#index',
     '/clans/:id': 'clans#show',
 
