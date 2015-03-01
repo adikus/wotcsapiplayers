@@ -1,4 +1,4 @@
-module.exports = Config = {
+module.exports = config = {
     server: {
         port: 3000
     },
