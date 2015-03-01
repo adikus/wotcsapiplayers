@@ -24,6 +24,8 @@ module.exports = ClanLoader = cls.Class.extend({
         }, 1000);
     },
 
+    type: 'Clan',
+
     onReady: function (callback) {
         var self = this;
         var waitTime = config.loader.waitTimeout;

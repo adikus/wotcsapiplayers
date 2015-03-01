@@ -18,6 +18,8 @@ module.exports = Player = cls.Class.extend({
         }
     },
 
+    type: 'Player',
+
     afterFind: function () {
         this.vehicleManager = new VehicleManager(this);
         this.statsManager = new StatsManager(this);

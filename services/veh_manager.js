@@ -6,7 +6,7 @@ var Logger = require('./../core/logger');
 module.exports = VehManager = cls.Class.extend({
     init: function (parent) {
         this.parent = parent;
-        this.logger = new Logger('VehManager(' + this.parent.wid + ')');
+        this.logger = new Logger('VehManager(' + this.parent.type + '|' + this.parent.wid + ')');
 
         this.topTiers = {};
 

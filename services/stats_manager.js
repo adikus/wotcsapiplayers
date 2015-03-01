@@ -7,7 +7,7 @@ var Logger = require('./../core/logger');
 module.exports = StatsManager = cls.Class.extend({
     init: function (parent, stats) {
         this.parent = parent;
-        this.logger = new Logger('StatsManager(' + this.parent.wid + ')');
+        this.logger = new Logger('StatsManager(' + this.parent.type + '|' + this.parent.wid + ')');
 
         this.stats = stats || this.parent.doc.sc;
     },
@@ -70,72 +70,79 @@ module.exports = StatsManager = cls.Class.extend({
         return typeof n === 'number' && !(n % 1 === 0);
     },
 
-    // TODO: refactor
     save: function (callback) {
         var self = this;
-        var status = "";
         var wid = this.parent.wid;
 
         DB.Stat.findOne({_id: wid}, function (err, doc) {
             if (err) {
                 self.logger.error(err.message);
             }
-            if (!doc) {
-                var stats = {};
-                for (var i in self.stats)stats[i] = [self.stats[i]];
+            if(!doc){
                 doc = new DB.Stat({
                     _id: wid,
-                    s: {d: stats}
+                    s: {d: self.stats}
                 });
-                status += " created-d";
-            } else {
-                if (self.dateMonthTS(_.last(doc.s.d.u)) == self.dateMonthTS(self.stats.u)) {
-                    for (var i in self.stats){
-                        if (!doc.s.d[i]){
-                            doc.s.d[i] = _(doc.s.d.GPL.length).times(function () { return 0; });
-                        }
-                        doc.s.d[i][doc.s.d[i].length - 1] = self.stats[i];
-                    }
-                    doc.markModified('s');
-                    status += " updated-d";
-                } else {
-                    for (var i in self.stats){
-                        if (!doc.s.d[i]){
-                            doc.s.d[i] = _(doc.s.d.member_count.length).times(function () { return 0; });
-                        }
-                        doc.s.d[i].push(self.stats[i]);
-                    }
-                    if (doc.s.d.u.length > config.stats.maxDays)for (var i in self.stats)if (doc.s.d[i])doc.s.d[i].shift();
-                    doc.markModified('s');
-                    status += " pushed-d";
-                }
+                self.logger.debug('Created daily stats');
+            }else{
+                doc = self.updateDailyStats(doc);
             }
             if (self.stats.u.getDay() == 6) {
-                if (!doc.s.w) {
-                    var stats = {};
-                    for (var i in self.stats)stats[i] = [self.stats[i]];
-                    doc.s.w = stats;
-                    status += " created-w";
-                } else {
-                    if (self.dateMonthTS(_.last(doc.s.w.u)) == self.dateMonthTS(self.stats.u)) {
-                        for (var i in self.stats)if (doc.s.w[i])doc.s.w[i][doc.s.w[i].length - 1] = self.stats[i];
-                        doc.markModified('s');
-                        status += " updated-w";
-                    } else {
-                        for (var i in self.stats)if (doc.s.w[i])doc.s.w[i].push(self.stats[i]);
-                        if (doc.s.w.u.length > config.stats.maxWeeks)for (var i in self.stats)if (doc.s.w[i])doc.s.w[i].shift();
-                        doc.markModified('s');
-                        status += " pushed-w";
-                    }
-                }
+                self.updateWeeklyStats(doc);
             }
             if (self.stats.member_count)doc.SC = self.stats.SC3;
+            doc.markModified('s');
             doc.save(function (err) {
                 if (err)self.logger.error(err.message);
-                self.logger.debug("Stats"+status);
                 if (callback)callback();
             });
         });
+    },
+
+    updateDailyStats: function(doc) {
+        if(this.dateMonthTS(_.last(doc.s.d.u)) == this.dateMonthTS(this.stats.u)){
+            this.logger.debug('Updated daily stats');
+            this.rewriteLastStat(doc.s.d);
+        }else{
+            this.logger.debug('Pushed new daily stats');
+            this.pushNewStat(doc.s.d);
+        }
+        return doc;
+    },
+
+    updateWeeklyStats: function(doc) {
+        if (!doc.s.w) {
+            doc.s.w = this.stats;
+            this.logger.debug('Created weekly stats');
+        } else {
+            if (this.dateMonthTS(_.last(doc.s.w.u)) == this.dateMonthTS(this.stats.u)) {
+                this.logger.debug('Updated weekly stats');
+                this.rewriteLastStat(doc.s.w);
+            } else {
+                this.logger.debug('Pushed new weekly stats');
+                this.pushNewStat(doc.s.w);
+            }
+        }
+        return doc;
+    },
+
+    rewriteLastStat: function(stats) {
+        _(this.stats).each(function (value, key) {
+            if (!stats[key])this.initializeStat(stats, key, stats.u.length);
+            stats[key][stats[key].length - 1] = this.stats[key];
+        }, this);
+    },
+
+    pushNewStat: function(stats) {
+        _(this.stats).each(function (value, key) {
+            if (!stats[key])this.initializeStat(stats, key, stats.u.length);
+            stats[key].push(this.stats[key]);
+            if(stats[key].length > config.stats.maxDays)stats[key].shift();
+        }, this);
+    },
+
+    initializeStat: function(stats, key, n) {
+        stats[key] = _(n).times(function () { return 0; });
     },
 
     dateMonthTS: function (date) {
