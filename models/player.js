@@ -129,6 +129,9 @@ module.exports = Player = cls.Class.extend({
         if (force < 0) {
             return false;
         }
+        if(this.doc && !this.doc.sc.WN8){
+            return true;
+        }
         if (force > 0) {
             return true;
         }

@@ -33,16 +33,20 @@ var o = {
                 emit("EFR:" + EFR, 1);
                 var WN7 = Math.round(s.d.WN7[i] / 1000) * 1000;
                 emit("WN7:" + WN7, 1);
-                var WN8 = Math.round(s.d.WN8[i] / 1000) * 1000;
-                emit("WN8:" + WN8, 1);
+                if(s.d.WN8 && s.d.WN8[i]){
+                    var WN8 = Math.round(s.d.WN8[i] / 1000) * 1000;
+                    emit("WN8:" + WN8, 1);
+                }
                 var SC3 = Math.round(s.d.SC3[i] / 25000) * 25000;
                 emit("SC3:" + SC3, 1);
                 var EFRA = Math.round(s.d.EFR[i] / mc / 10) * 10;
                 emit("EFRA:" + EFRA, 1);
                 var WN7A = Math.round(s.d.WN7[i] / mc / 10) * 10;
                 emit("WN7A:" + WN7A, 1);
-                var WN8A = Math.round(s.d.WN8[i] / mc / 10) * 10;
-                emit("WN8A:" + WN8A, 1);
+                if(s.d.WN8 && s.d.WN8[i]){
+                    var WN8A = Math.round(s.d.WN8[i] / mc / 10) * 10;
+                    emit("WN8A:" + WN8A, 1);
+                }
                 var SC3A = Math.round(s.d.SC3[i] / mc / 250) * 250;
                 emit("SC3A:" + SC3A, 1);
                 emit("MC:" + mc, 1);

@@ -30,8 +30,10 @@ var o = {
                 emit("EFR:" + EFR, 1);
                 var WN7 = Math.round(s.WN7 / 10) * 10;
                 emit("WN7:" + WN7, 1);
-                var WN8 = Math.round(s.WN8 / 10) * 10;
-                emit("WN8:" + WN8, 1);
+                if(s.WN8){
+                    var WN8 = Math.round(s.WN8 / 10) * 10;
+                    emit("WN8:" + WN8, 1);
+                }
                 var SC3 = Math.round(s.SC3 / 250) * 250;
                 emit("SC3:" + SC3, 1);
             }

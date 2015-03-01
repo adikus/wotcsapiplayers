@@ -70,6 +70,7 @@ module.exports = StatsManager = cls.Class.extend({
         return typeof n === 'number' && !(n % 1 === 0);
     },
 
+    // TODO: refactor
     save: function (callback) {
         var self = this;
         var status = "";
@@ -89,11 +90,21 @@ module.exports = StatsManager = cls.Class.extend({
                 status += " created-d";
             } else {
                 if (self.dateMonthTS(_.last(doc.s.d.u)) == self.dateMonthTS(self.stats.u)) {
-                    for (var i in self.stats)if (doc.s.d[i])doc.s.d[i][doc.s.d[i].length - 1] = self.stats[i];
+                    for (var i in self.stats){
+                        if (!doc.s.d[i]){
+                            doc.s.d[i] = _(doc.s.d.GPL.length).times(function () { return 0; });
+                        }
+                        doc.s.d[i][doc.s.d[i].length - 1] = self.stats[i];
+                    }
                     doc.markModified('s');
                     status += " updated-d";
                 } else {
-                    for (var i in self.stats)if (doc.s.d[i])doc.s.d[i].push(self.stats[i]);
+                    for (var i in self.stats){
+                        if (!doc.s.d[i]){
+                            doc.s.d[i] = _(doc.s.d.member_count.length).times(function () { return 0; });
+                        }
+                        doc.s.d[i].push(self.stats[i]);
+                    }
                     if (doc.s.d.u.length > config.stats.maxDays)for (var i in self.stats)if (doc.s.d[i])doc.s.d[i].shift();
                     doc.markModified('s');
                     status += " pushed-d";
