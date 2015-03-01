@@ -23,7 +23,7 @@ module.exports = server = cls.Class.extend({
 
         // Error handler needs to be defined after the routes
         this.app.use(function (err, req, res, next) {
-            Logger.error('Internal Server Error: ', err.message);
+            Logger.error('Internal Server Error: ' + err.message);
             Logger.error(err.stack);
             res.status(500).json({status: 'error', error: 'Internal Server Error'});
         });
