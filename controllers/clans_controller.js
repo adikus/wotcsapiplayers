@@ -28,14 +28,9 @@ module.exports = ClansController = cls.Class.extend({
     show: function (req, callback) {
         var id = req.params.id;
 
-        if (req.query.stats) {
-            var statsManager = new StatsManager();
-            return statsManager.getStatsFromDB(id, callback);
-        }
-
-        var force = req.query.force;
-        var retry = req.query.retry;
-        var last = req.query.last;
+        var force = parseInt(req.query.force);
+        var retry = parseInt(req.query.retry);
+        var last = parseInt(req.query.last);
 
         var loader = this.prepareLoader(id, force, retry);
         loader.onReady(function () {
@@ -43,8 +38,15 @@ module.exports = ClansController = cls.Class.extend({
         });
     },
 
+    stats: function(req, callback){
+        var id = req.params.id;
+
+        var statsManager = new StatsManager({type: 'Clan'});
+        return statsManager.getStatsFromDB(id, callback);
+    },
+
     top: function (req, callback) {
-        var region = req.query.region ? parseInt(req.query.region, 10) : -1;
+        var region = req.query.region === undefined ? -1 : parseInt(req.query.region, 10);
 
         ClanCollection.top(region, 100, callback);
     },

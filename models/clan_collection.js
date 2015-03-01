@@ -61,7 +61,7 @@ var ClanCollection = cls.Class.extend({
 });
 
 ClanCollection.top = function(region, limit, callback) {
-    var cond = region > 0 ? {_id: Regions.queryConditions(region)} : {};
+    var cond = region > -1 ? {_id: Regions.queryConditions(region)} : {};
     cond.SC = {$gt: 0};
 
     DB.Stat.find(cond).select("_id SC").sort("-SC").limit(limit || 100).exec(function (err, docs) {

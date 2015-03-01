@@ -11,12 +11,14 @@ module.exports = PlayersController = cls.Class.extend({
     show: function (req, callback) {
         var id = req.params.id;
 
-        if (req.query.stats) {
-            var statsManager = new StatsManager();
-            return statsManager.getStatsFromDB(id, callback);
-        }
-
         var player = new Player(id, null, this.app.requestManager);
         player.findAndLoad(req.query.force || 0, callback);
+    },
+
+    stats: function(req, callback){
+        var id = req.params.id;
+
+        var statsManager = new StatsManager({type: 'Player'});
+        return statsManager.getStatsFromDB(id, callback);
     }
 });

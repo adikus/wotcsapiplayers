@@ -9,7 +9,7 @@ module.exports = StatsManager = cls.Class.extend({
         this.parent = parent;
         this.logger = new Logger('StatsManager(' + this.parent.type + '|' + this.parent.wid + ')');
 
-        this.stats = stats || this.parent.doc.sc;
+        this.stats = stats || (this.parent.doc && this.parent.doc.sc) || {};
     },
 
     parse: function (data) {
@@ -81,7 +81,7 @@ module.exports = StatsManager = cls.Class.extend({
             if(!doc){
                 doc = new DB.Stat({
                     _id: wid,
-                    s: {d: self.stats}
+                    s: {d: _(self.stats).chain().map(function(value, key) { return [key, [value]]; }).object().value()}
                 });
                 self.logger.debug('Created daily stats');
             }else{
@@ -112,7 +112,7 @@ module.exports = StatsManager = cls.Class.extend({
 
     updateWeeklyStats: function(doc) {
         if (!doc.s.w) {
-            doc.s.w = this.stats;
+            doc.s.w = _(this.stats).chain().map(function(value, key) { return [key, [value]]; }).object().value();
             this.logger.debug('Created weekly stats');
         } else {
             if (this.dateMonthTS(_.last(doc.s.w.u)) == this.dateMonthTS(this.stats.u)) {

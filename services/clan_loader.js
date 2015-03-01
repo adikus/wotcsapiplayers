@@ -194,6 +194,7 @@ module.exports = ClanLoader = cls.Class.extend({
                 return false;
             }),
             total: this.done ? { stats_current: this.total.stats.getData(), vehs: this.total.vehs.getData() } : undefined,
+            last_pos: this.requestManager.pos(this.lastWid),
             last: lastServed
         };
     }
