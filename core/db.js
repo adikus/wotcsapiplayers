@@ -1,62 +1,59 @@
-var mongoose = require('mongoose'),
-    Config = require("./../config");
+var mongoose = require('mongoose');
+var config = require("./../config");
+var Logger = require('./logger');
 
-var oldDB = mongoose.createConnection(Config.db.stats,function(err){
-	if (err){
-		console.log("Error MONGOHQ DB", err);
-		throw err;
-	}else console.log("Connected to MONGOHQ DB");
-});
-var playerDB = mongoose.createConnection(Config.db.players,function(err){
-	if (err){
-		console.log("Error MONGOLAB player DB", err);
-		throw err;
-	} else console.log("Connected to MONGOLAB player DB");
-});
-var clanDB = mongoose.createConnection(Config.db.clans,function(err){
-	if (err){
-		console.log("Error MONGOLAB clan DB", err);
-		throw err;
-	} else console.log("Connected to MONGOLAB clan DB");
-});
+var logger = new Logger('DB');
 
-var ErrorSchema = mongoose.Schema({ 
-	e: 'string',
-	t: 'date'
+function connect(url, name) {
+    return mongoose.createConnection(url, function (err) {
+        if (err) {
+            logger.error('Error connecting to ' + name);
+            throw err;
+        } else logger.info("Connected to " + name);
+    });
+}
+
+var oldDB = connect(config.db.stats, 'Stats DB');
+var playerDB = connect(config.db.players, 'Player DB');
+var clanDB = connect(config.db.clans, 'Clan DB');
+
+var ErrorSchema = mongoose.Schema({
+    e: 'string',
+    t: 'date'
 });
 var ErrorLog = oldDB.model('Perror', ErrorSchema);
 
 var JobSchema = mongoose.Schema({
-	j: 'string',
-	t: 'date'
+    j: 'string',
+    t: 'date'
 });
 var Job = oldDB.model('Job', JobSchema);
 
 var clanSchema = mongoose.Schema({
-	_id: 'number',
-	n: 'string',
-	t: 'string',
-	d: 'string',
-	m: 'string',
-	s: 'string',
-	ms: 'mixed',
-	u: 'date'
+    _id: 'number',
+    n: 'string',
+    t: 'string',
+    d: 'string',
+    m: 'string',
+    s: 'string',
+    ms: 'mixed',
+    u: 'date'
 });
 var Clan = clanDB.model('Clan', clanSchema);
 
 var statSchema = mongoose.Schema({
-	_id: 'number',
-	s: 'mixed',
-	SC: 'number',
+    _id: 'number',
+    s: 'mixed',
+    SC: 'number',
 });
 var Stat = oldDB.model('Stat', statSchema);
 
 var vehSchema = mongoose.Schema({
-	name: {type:'string',index: {unique: true, dropDups: true}},
-	lname: 'string',
-	tier: 'number',
-	nation: 'number',
-	type: 'number',
+    name: {type: 'string', index: {unique: true, dropDups: true}},
+    lname: 'string',
+    tier: 'number',
+    nation: 'number',
+    type: 'number',
 });
 var VehDB = oldDB.model('Veh', vehSchema);
 
@@ -66,42 +63,42 @@ var vehicleSchema = mongoose.Schema({
 });
 var VehicleDB = oldDB.model('Vehicle', vehicleSchema);
 
-var statisticSchema = mongoose.Schema({ 
-	_id: 'string',
-	value: 'number'
+var statisticSchema = mongoose.Schema({
+    _id: 'string',
+    value: 'number'
 });
 var Statistic = playerDB.model('Statistic', statisticSchema);
 var VStatistic = playerDB.model('VStatistic', statisticSchema);
 //var VStatistic = playerDB.model('TestStatistic', statisticSchema);
 var CStatistic = oldDB.model('CStatistic', statisticSchema);
 
-var playerStatusSchema = mongoose.Schema({ 
-	_id: 'string',
-	value: 'mixed'
+var playerStatusSchema = mongoose.Schema({
+    _id: 'string',
+    value: 'mixed'
 });
 var PlayerStatus = playerDB.model('PlayerStatus', playerStatusSchema, 'player_status');
 
 var newPlayerSchema = mongoose.Schema({
-	_id: 'number',
-	n: 'string',
-	s: 'string',
-	c: 'number',
-	sc: 'mixed',
-	v: 'mixed',
-	u: 'date'
+    _id: 'number',
+    n: 'string',
+    s: 'string',
+    c: 'number',
+    sc: 'mixed',
+    v: 'mixed',
+    u: 'date'
 });
 var Player = playerDB.model('Player', newPlayerSchema);
 
 module.exports = DBTypes = {
-	Clan: Clan,
-	Veh: VehDB,
+    Clan: Clan,
+    Veh: VehDB,
     Vehicle: VehicleDB,
-	Player: Player,
-	Stat: Stat,
-	Statistic: Statistic,
-	VStatistic: VStatistic,
-	CStatistic: CStatistic,
-	PlayerStatus: PlayerStatus,
-	ErrorLog: ErrorLog,
-	Job: Job
+    Player: Player,
+    Stat: Stat,
+    Statistic: Statistic,
+    VStatistic: VStatistic,
+    CStatistic: CStatistic,
+    PlayerStatus: PlayerStatus,
+    ErrorLog: ErrorLog,
+    Job: Job
 };

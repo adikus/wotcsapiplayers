@@ -5,7 +5,8 @@
     "underscore": ">0",
     "mongoose": ">0",
     "express": ">0",
-    "compression": ">0"
+    "compression": ">0",
+    "chalk": ">0"
   },
   "engines": {
     "node": "0.10.x",

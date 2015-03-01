@@ -4,6 +4,7 @@ var Router = require("./router");
 var config = require('./../config');
 var _ = require("underscore");
 var DB = require('./db');
+var Logger = require('./logger');
 
 var StatusController = require('./../controllers/status_controller');
 var ClansController = require('./../controllers/clans_controller');
@@ -32,14 +33,16 @@ module.exports = App = cls.Class.extend({
     run: function () {
         var self = this;
 
+        Logger.info('Running application.');
+
         VehicleData.load(function () {
             self.server.run();
         });
     },
 
     logError: function (err) {
-        console.error((new Date).toISOString() + ' uncaughtException:', err.message);
-        console.error(err.stack);
+        Logger.error('Uncaught Exception: ' + err.message);
+        Logger.error(err.stack);
 
         var errorLog = new DB.ErrorLog({e: err.stack, t: new Date()});
         errorLog.save(function () {

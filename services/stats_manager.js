@@ -2,10 +2,12 @@ var cls = require("./../lib/class");
 var _ = require("underscore");
 var config = require('./../config');
 var DB = require("./../core/db");
+var Logger = require('./../core/logger');
 
 module.exports = StatsManager = cls.Class.extend({
     init: function (parent, stats) {
         this.parent = parent;
+        this.logger = new Logger('StatsManager(' + this.parent.wid + ')');
 
         this.stats = stats || this.parent.doc.sc;
     },
@@ -74,7 +76,7 @@ module.exports = StatsManager = cls.Class.extend({
 
         DB.Stat.findOne({_id: wid}, function (err, doc) {
             if (err) {
-                console.log(err);
+                self.logger.error(err.message);
             }
             if (!doc) {
                 var stats = {};
@@ -117,8 +119,8 @@ module.exports = StatsManager = cls.Class.extend({
             }
             if (self.stats.member_count)doc.SC = self.stats.SC3;
             doc.save(function (err) {
-                if (err)console.log(err);
-                //console.log("Stats"+status+": "+wid);
+                if (err)self.logger.error(err.message);
+                self.logger.debug("Stats"+status+": "+wid);
                 if (callback)callback();
             });
         });

@@ -2,18 +2,26 @@ var express = require('express');
 var cls = require("./../lib/class");
 var _ = require("underscore");
 var routes = require('./../routes');
+var Logger = require("./logger");
 
 module.exports = Router = cls.Class.extend({
     init: function (app) {
         this.app = app;
         this.routes = routes;
+        this.logger = new Logger('Router');
 
         var self = this;
         var router = express.Router();
 
         // Logging
         router.use(function (req, res, next) {
-            console.log((new Date).toISOString(), req.method, req.path, req.query, req.connection.remoteAddress, req.headers.Referer || '(Direct)');
+            var method = req.method;
+            var path = req.path;
+            var query = JSON.stringify(req.query);
+            var ip = req.connection.remoteAddress;
+            var referer = req.headers.Referer || '(Direct)';
+
+            self.logger.info(method + ' ' + path + ' ' + query + ' ' + ip + ' ' + referer);
             next();
         });
 

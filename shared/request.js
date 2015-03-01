@@ -25,7 +25,7 @@ module.exports = Request = cls.Class.extend({
         this.request = http.request(options, function (res) {
             var error = res.statusCode != 200;
             if (error && res.statusCode != 503) {
-                console.log(res.statusCode, this.path);
+                console.log(res.statusCode, self.path);
             }
 
             res.on('data', function (chunk) {

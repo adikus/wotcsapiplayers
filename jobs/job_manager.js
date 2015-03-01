@@ -3,6 +3,7 @@ var cls = require("./../lib/class"),
     Config = require("./../config"),
     DBTypes = require("./../core/db");
 
+//TODO: convert into herouk scheduler jobs
 module.exports = JobManager = cls.Class.extend({
     updatePlayerStats: function (done_callback) {
         var o = {

@@ -4,11 +4,18 @@ var DB = require("./../core/db");
 var config = require("./../config");
 var VehicleManager = require("./../services/veh_manager");
 var StatsManager = require("./../services/stats_manager");
+var Logger = require('./../core/logger');
 
 module.exports = Player = cls.Class.extend({
-    init: function (wid, requestManager) {
+    init: function (wid, doc, requestManager) {
         this.wid = wid;
         this.requestManager = requestManager;
+        this.logger = new Logger('Player(' + wid + ')');
+
+        this.doc = doc;
+        if (this.doc) {
+            this.afterFind();
+        }
     },
 
     afterFind: function () {
@@ -85,15 +92,17 @@ module.exports = Player = cls.Class.extend({
             data.tanks = JSON.parse(rawData.tanks).data[this.wid];
             return data;
         } catch (err) {
-            console.log(err);
+            this.logger.error(err.message);
             return false;
         }
     },
 
     save: function () {
+        var self = this;
+
         this.doc.save(function (err) {
             if (err) {
-                console.log("Error saving player: ", err);
+                self.logger.error(err.message);
             }
         });
     },

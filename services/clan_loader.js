@@ -3,7 +3,10 @@ var _ = require("underscore");
 var DB = require("./../core/db");
 var config = require("./../config");
 var StatsManager = require("./stats_manager");
+var Player = require("./../models/player");
+var Logger = require('./../core/logger');
 
+//TODO: refactor this class
 module.exports = ClanLoader = cls.Class.extend({
     init: function (wid, requestManager) {
         this.lastAccessed = this.created = new Date();
@@ -11,6 +14,7 @@ module.exports = ClanLoader = cls.Class.extend({
         this.requestManager = requestManager;
         this.reqsP = 0;
         this.savesP = 0;
+        this.logger = new Logger('ClanLoader(' + wid + ')');
 
         var self = this;
         this.deleteInterval = setInterval(function () {
@@ -42,6 +46,20 @@ module.exports = ClanLoader = cls.Class.extend({
         }
     },
 
+    getInfo: function () {
+        return {
+            wid: this.wid,
+            created: this.created,
+            last_access: this.lastAccessed,
+            force: this.force,
+            last_pos: this.requestManager.pos(this.lastWid, this.wid),
+            to_be_done: this.l,
+            reqs_pending: this.reqsP,
+            saves_pending: this.savesP,
+            error: this.errors
+        }
+    },
+
     start: function (force) {
         this.force = force;
         this.lastAccessed = new Date();
@@ -62,7 +80,7 @@ module.exports = ClanLoader = cls.Class.extend({
             self = this;
         time.setTime(time.getTime() - config.player.updateInterval);
 
-        console.log("Starting loader for clan: " + this.wid);
+        this.logger.info("Starting...");
 
         DB.Player.count({c: this.wid}, function (err, count) {
             self.l = count;
@@ -88,12 +106,9 @@ module.exports = ClanLoader = cls.Class.extend({
         DB.Player.find(cond, function (err, docs) {
 
             var players = _.map(docs, function (doc) {
-                var p = new Player(doc._id);
-                p.doc = doc;
-                return p;
+                return new Player(doc._id, doc);
             });
             _.each(players, function (player) {
-                player.afterFind();
                 self.player_data_callback(player.getData());
             });
         });
@@ -104,9 +119,7 @@ module.exports = ClanLoader = cls.Class.extend({
             self = this;
         DB.Player.find(cond, function (err, docs) {
             var players = _.map(docs, function (doc) {
-                var p = new Player(doc._id, self.requestManager);
-                p.doc = doc;
-                return p;
+                return new Player(doc._id, doc, self.requestManager);
             });
             _.each(players, function (player) {
                 self.reqsP++;

@@ -1,10 +1,12 @@
 var cls = require("./../lib/class");
 var _ = require("underscore");
 var VehicleData = require('./veh_data');
+var Logger = require('./../core/logger');
 
 module.exports = VehManager = cls.Class.extend({
     init: function (parent) {
         this.parent = parent;
+        this.logger = new Logger('VehManager(' + this.parent.wid + ')');
 
         this.topTiers = {};
 
@@ -41,7 +43,7 @@ module.exports = VehManager = cls.Class.extend({
             };
 
             if (!finalTank.info) {
-                console.log('Unknown tank id:', tank.tank_id);
+                this.logger.warning('Unknown tank id: ' + tank.tank_id);
             }
 
             var tier = (finalTank.info && finalTank.info.level) || 0;
@@ -99,7 +101,8 @@ module.exports = VehManager = cls.Class.extend({
             icon: tank.info.contour_image,
             short_name: tank.info.short_name_i18n,
             name: tank.info.name_i18n,
-            type: this.parseType(tank.info.type)
+            type: this.parseType(tank.info.type),
+            id: tank.info.tank_id
         };
     },
 

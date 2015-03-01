@@ -38,5 +38,16 @@ module.exports = {
             return this.EU;
         }
         return this.RU;
+    },
+
+    queryConditions: function(region){
+        return {
+            0: {$lt: 500000000, $gt: 0},
+            1: {$lt: 1000000000, $gt: 500000000},
+            2: {$lt: 2000000000, $gt: 1000000000},
+            3: {$lt: 2500000000, $gt: 2000000000},
+            4: {$lt: 3000000000, $gt: 2500000000},
+            5: {$gt: 3000000000}
+        }[region];
     }
 };
