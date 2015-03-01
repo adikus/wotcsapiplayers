@@ -28,7 +28,7 @@ DB.PlayerStatus.remove(function () {
     _.each(times, function (time, key) {
         if (key > 0)
             DB.Player.count({u: {$gt: time}}, function (err, count) {
-                var playerStatus = new DBTypes.PlayerStatus({_id: key, value: count});
+                var playerStatus = new DB.PlayerStatus({_id: key, value: count});
                 playerStatus.save(function () {
                     testForEnd();
                 });

@@ -89,7 +89,7 @@ var newPlayerSchema = mongoose.Schema({
 });
 var Player = playerDB.model('Player', newPlayerSchema);
 
-module.exports = DBTypes = {
+module.exports = DB = {
     Clan: Clan,
     Veh: VehDB,
     Vehicle: VehicleDB,

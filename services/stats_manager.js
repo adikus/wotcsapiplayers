@@ -83,7 +83,7 @@ module.exports = StatsManager = cls.Class.extend({
             if (!doc) {
                 var stats = {};
                 for (var i in self.stats)stats[i] = [self.stats[i]];
-                doc = new DBTypes.Stat({
+                doc = new DB.Stat({
                     _id: wid,
                     s: {d: stats}
                 });
@@ -198,3 +198,5 @@ module.exports = StatsManager = cls.Class.extend({
         return Math.round(this.stats.WN7 / 1500 * score * 100) / 100;
     }
 });
+
+StatsManager.stats = ['GPL', 'WIN', 'DEF', 'SUR', 'FRG', 'SPT', 'ACR', 'DMG', 'CPT', 'DPT', 'EXP', 'WN7', 'WN8', 'EFR', 'SC3'];

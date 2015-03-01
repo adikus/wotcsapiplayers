@@ -19,10 +19,7 @@ module.exports = ClansController = cls.Class.extend({
                 return loader.getInfo();
             }),
             reqs_pending_total: _(this.loaders).reduce(function (memo, loader) {
-                return memo + loader.reqsP;
-            }, 0),
-            saves_pending_total: _(this.loaders).reduce(function (memo, loader) {
-                return memo + loader.savesP;
+                return memo + loader.pendingRequests;
             }, 0),
             request_manager: this.app.requestManager.getInfo()
         });
@@ -55,7 +52,7 @@ module.exports = ClansController = cls.Class.extend({
     busyLoaders: function () {
         var ret = 0;
         _.each(this.loaders, function (loader) {
-            ret += loader.l > 0 ? 1 : 0;
+            ret += loader.toDo == 0 ? 0 : 1;
         });
         return ret;
     },

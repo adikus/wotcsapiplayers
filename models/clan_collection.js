@@ -3,6 +3,8 @@ var _ = require("underscore");
 var DB = require("./../core/db");
 var Player = require("./../models/player");
 var Regions = require('./../shared/regions');
+var ClanStatsCollection = require('./clan_stats_collection');
+var ClanVehsCollection = require('./clan_vehs_collection');
 
 var ClanCollection = cls.Class.extend({
     init: function (ids, clans) {
@@ -17,6 +19,8 @@ var ClanCollection = cls.Class.extend({
             _.each(clans, function (clan) {
                 self.clans[clan._id].name = clan.n;
                 self.clans[clan._id].tag = clan.t;
+                self.clans[clan._id].stats = new ClanStatsCollection();
+                self.clans[clan._id].vehs = new ClanVehsCollection();
             });
             callback(err);
         });
@@ -31,12 +35,11 @@ var ClanCollection = cls.Class.extend({
             });
 
             _.each(players, function (player) {
-                if (!self.clans[player.doc.c]){
-                    self.clans[player.doc.c] = {};
+                if (self.clans[player.doc.c]){
+                    var data = player.getData();
+                    self.clans[player.doc.c].stats.addStats(data);
+                    self.clans[player.doc.c].vehs.addVehs(data);
                 }
-                var data = player.getData();
-                self.addVehsToTotal(data);
-                self.addStatsToTotal(data);
             });
 
             callback(err);
@@ -44,62 +47,16 @@ var ClanCollection = cls.Class.extend({
     },
 
     getData: function() {
-        return _(this.clans).sortBy('SC').reverse();
-    },
-
-    // TODO: extract into VehCollection
-    addVehsToTotal: function (data) {
-        var vehs = data.vehs;
-
-        if (!this.clans[data.clan_id].vehs) {
-            this.clans[data.clan_id].vehs = {1: [], 2: [], 3: [], 4: []};
-        }
-
-        var clanVehs = this.clans[data.clan_id].vehs;
-        _.each(vehs, function (typeVehs, type) {
-            _.each(typeVehs.tanks, function (veh) {
-                if (veh.tier == 10) {
-                    var found = _(clanVehs[type]).any(function (clanVeh) {
-                        if (veh.id == clanVeh.id) {
-                            clanVeh.battles += veh.battles;
-                            clanVeh.wins += veh.wins;
-                            clanVeh.count++;
-                            return true;
-                        }
-                        return false;
-                    });
-                    if (!found) {
-                        var newVeh = _.clone(veh);
-                        newVeh.count = 1;
-                        delete newVeh.updated_at;
-
-                        clanVehs[type].push(newVeh);
-                    }
-                }
-            });
-        });
-    },
-
-    // TODO: extract into StatsCollection
-    addStatsToTotal: function (data) {
-        var  stats = data.stats_current;
-
-        if (!this.clans[data.clan_id].stats) {
-            this.clans[data.clan_id].stats = stats;
-            this.clans[data.clan_id].stats.member_count = 1;
-        } else {
-            var clanStats = this.clans[data.clan_id].stats;
-            var keys = ['GPL', 'WIN', 'DEF', 'SUR', 'FRG', 'SPT', 'ACR', 'DMG', 'CPT', 'DPT', 'EXP', 'WN7', 'WN8', 'EFR', 'SC3'];
-
-            _(keys).each(function (key) {
-                if(_(stats[key]).isString()){
-                    clanStats[key] = (parseFloat(clanStats[key]) + parseFloat(stats[key])).toFixed(2);
-                }else{
-                    clanStats[key] += stats[key];
-                }
-            });
-            clanStats.member_count++;
-        }
+        return _(this.clans).chain().values().sortBy('SC').map(function (clan) {
+            return {
+                wid: clan.wid,
+                score: clan.SC,
+                name: clan.name,
+                tag: clan.tag,
+                stats: clan.stats && clan.stats.getData(),
+                vehs: clan.vehs && clan.vehs.getData()
+            }
+        }).value().reverse();
     }
 });
 

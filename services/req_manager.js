@@ -249,7 +249,7 @@ module.exports = ReqManager = cls.Class.extend({
         });
     },
 
-    pos: function (wid, cid) {
+    pos: function (wid) {
         var region = Regions.getRegion(wid);
         var taskIndex1 = Math.max(this.findTask(region, 'account.info', wid), 0);
         var taskIndex2 = Math.max(this.findTask(region, 'account.tanks', wid), 0);
