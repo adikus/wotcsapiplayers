@@ -1,7 +1,7 @@
-var cls = require("./lib/class");
+var cls = require("./../lib/class");
 var _ = require("underscore");
-var Request = require("./shared/request");
-var Regions = require("./shared/regions");
+var Request = require("./../shared/request");
+var Regions = require("./../shared/regions");
     
 module.exports = ReqManager = cls.Class.extend({
 	init: function(config){
@@ -25,13 +25,13 @@ module.exports = ReqManager = cls.Class.extend({
         if(subject == 'accounts'){
             var ret = {};
             var next = _.after(2, function() {
-                callback(ret);
+                callback(null, ret);
             });
-            this.addTask(region,'account.info',wid,function(data) {
+            this.addTask(region,'account.info',wid,function(err, data) {
                 ret.info = data;
                 next();
             }, !cid);
-            this.addTask(region,'account.tanks',wid,function(data) {
+            this.addTask(region,'account.tanks',wid,function(err, data) {
                 ret.tanks = data;
                 next();
             }, !cid);
@@ -157,11 +157,13 @@ module.exports = ReqManager = cls.Class.extend({
         if(subject == 'account' && method == 'info'){ fields = 'statistics.all,nickname';}
         if(subject == 'account' && method == 'tanks'){ fields = 'statistics.battles,statistics.wins,tank_id,mark_of_mastery'; }
 
+        console.log(subject, method, task.IDs, fields);
+
         var req = new Request(subject, method, task.IDs, fields);
         this.currentRequests[task.ID] = req;
         var self = this;
         req.onSuccess(function(data) {
-            self.executeCallbacks(task.callbacks, data);
+            self.executeCallbacks(task.callbacks, null, data);
             self.calcReqStats(start,task.IDs.length);
 			self.lastFinish = new Date();
 			self.setWaitTime(start);
@@ -216,9 +218,9 @@ module.exports = ReqManager = cls.Class.extend({
 
     },
 
-    executeCallbacks: function(callbacks, data) {
+    executeCallbacks: function(callbacks, err, data) {
         _(callbacks).each(function(callback){
-            callback(data);
+            callback(err, data);
         });
     },
 

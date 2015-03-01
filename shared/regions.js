@@ -7,7 +7,7 @@ module.exports = {
     KR: 5,
 
     supportedRegions: [
-        0,1,2,3,5
+        0, 1, 2, 3, 5
     ],
 
     bounds: {
@@ -19,14 +19,24 @@ module.exports = {
         5: {min: 3000000000, max: 4000000000}
     },
 
-    TranslatedRegion: ['RU','EU','NA','SEA','VN','KR'],
+    TranslatedRegion: ['RU', 'EU', 'NA', 'SEA', 'VN', 'KR'],
 
     getRegion: function (id) {
-        if(id > 3000000000){return this.KR;}
-        if(id > 2500000000){return this.VN;}
-        if(id > 2000000000){return this.SEA;}
-        if(id > 1000000000){return this.NA;}
-        if(id > 500000000){return this.EU;}
+        if (id > 3000000000) {
+            return this.KR;
+        }
+        if (id > 2500000000) {
+            return this.VN;
+        }
+        if (id > 2000000000) {
+            return this.SEA;
+        }
+        if (id > 1000000000) {
+            return this.NA;
+        }
+        if (id > 500000000) {
+            return this.EU;
+        }
         return this.RU;
     }
 };

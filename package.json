@@ -3,10 +3,12 @@
   "version": "1.0.2",
   "dependencies": {
   	"underscore": ">0",
-  	"mongoose": ">0"
+  	"mongoose": ">0",
+    "express": ">0",
+    "compression": ">0"
   },
   "engines": {
-    "node": "0.8.x",
-    "npm": "1.1.x"
+    "node": "0.10.x",
+    "npm": "2.4.x"
   }
 }

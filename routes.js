@@ -1,15 +1,14 @@
-module.exports = Routes = {
-	status: "statusGlobal",
-	clan: "statusClan",
-	player: "statusPlayer",
-	changes: "loaders",
-	loaders: "loaderStatus",
-	names: "translateNames",
-	stats: "vehStats",
-	player_stats: "playerStats",
-	clan_stats: "clanStats",
-	set_sim: "setSimultaneousReqs",
-	top: "top",
-	jobs: "jobs",
-	errors: "errors"
+module.exports = routes = {
+    '/': 'status#index',
+    '/errors': 'status#errors',
+
+    '/clans/top': 'clans#top',             //TODO
+    '/clans/loaders': 'clans#index',
+    '/clans/:id': 'clans#show',
+
+    '/players/:id': 'players#show',
+
+    '/stats/vehs': 'stats#vehs',
+    '/stats/players': 'stats#players',
+    '/stats/clans': 'stats#clans'
 };

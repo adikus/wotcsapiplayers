@@ -1,35 +1,26 @@
 module.exports = Config = {
-	server: {
-		defPort: 3000,
-	},
-	db: {
-		defHost: "mongodb://localhost/wotcsapi",
-	},
-	stats: {
-		maxDays: 7,
-		maxWeeks: 5,
-	},
-	loader: {
+    server: {
+        port: 3000
+    },
+    db: {
+        stats: process.env.MONGOHQ_URL || "mongodb://localhost/wotcsapi",
+        players: process.env.WOTCS_PLAYERDB || "mongodb://localhost/wotcsapiplayers",
+        clans: process.env.WOTCS_CLANDB || "mongodb://localhost/wotcsapiclans"
+    },
+    stats: {
+        maxDays: 7,
+        maxWeeks: 5
+    },
+    loader: {
         simultaneousRequests: 4,
-		waitTime: 650,
-		waitMultiplier: 1.05,
+        waitTime: 650,
+        waitMultiplier: 1.05,
         idsInOneRequest: 30,
-		maxBusy: 50,
-		deleteTimeout: 60*1000,  //1 minute
-		waitTimeout: 1000  //1 second
-	},
-	jobs: {
-		periodical: {
-			"600": "updateStatus", //10 minutes
-		},
-		timed: {
-			"01:30:00": "updatePlayerStats",
-			"01:40:00": "updateClanStats",
-			"01:50:00": "updateVehStats",
-			"02:00:00": "statsMaintenance"
-		}
-	},
-	player: {
-		updateInterval: 6*60*60*1000   //6 hours
-	}
+        maxBusy: 50,
+        deleteTimeout: 60 * 1000,  //1 minute
+        waitTimeout: 1000  //1 second
+    },
+    player: {
+        updateInterval: 6 * 60 * 60 * 1000   //6 hours
+    }
 };

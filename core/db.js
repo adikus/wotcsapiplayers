@@ -1,19 +1,19 @@
 var mongoose = require('mongoose'),
-    Config = require("./config");
+    Config = require("./../config");
 
-var oldDB = mongoose.createConnection(process.env.MONGOHQ_URL || Config.db.defHost,function(err){
+var oldDB = mongoose.createConnection(Config.db.stats,function(err){
 	if (err){
 		console.log("Error MONGOHQ DB", err);
 		throw err;
 	}else console.log("Connected to MONGOHQ DB");
 });
-var playerDB = mongoose.createConnection(process.env.WOTCS_PLAYERDB,function(err){
+var playerDB = mongoose.createConnection(Config.db.players,function(err){
 	if (err){
 		console.log("Error MONGOLAB player DB", err);
 		throw err;
 	} else console.log("Connected to MONGOLAB player DB");
 });
-var clanDB = mongoose.createConnection(process.env.WOTCS_CLANDB,function(err){
+var clanDB = mongoose.createConnection(Config.db.clans,function(err){
 	if (err){
 		console.log("Error MONGOLAB clan DB", err);
 		throw err;
