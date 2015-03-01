@@ -16,7 +16,7 @@ module.exports = PlayersController = cls.Class.extend({
             return statsManager.getStatsFromDB(id, callback);
         }
 
-		var player = new Player(id, this.app.requestManager);
+        var player = new Player(id, this.app.requestManager);
         player.findAndLoad(req.query.force || 0, callback);
-	}
+    }
 });
