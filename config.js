@@ -22,5 +22,8 @@ module.exports = Config = {
     },
     player: {
         updateInterval: 6 * 60 * 60 * 1000   //6 hours
+    },
+    logger: {
+        logLevel: process.env.LOG_LEVEL || 0
     }
 };

@@ -3,6 +3,14 @@ var config = require('./../config');
 var _ = require("underscore");
 var chalk = require('chalk');
 
+var LOG_LEVEL = config.logger.logLevel;
+var LOG_LEVELS = {
+    debug: 0,
+    info: 1,
+    warning: 2,
+    error: 3
+};
+
 var Logger = cls.Class.extend({
     init: function (banner) {
         this.banner = banner;
@@ -48,6 +56,7 @@ Logger.tag = function(level) {
 };
 
 Logger.log = function(message, level, banner) {
+    if(LOG_LEVEL > LOG_LEVELS[level])return;
     var fullMessage = "%s: %s%s%s";
     var time = (new Date).toISOString();
     if(level == 'error'){

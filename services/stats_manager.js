@@ -120,7 +120,7 @@ module.exports = StatsManager = cls.Class.extend({
             if (self.stats.member_count)doc.SC = self.stats.SC3;
             doc.save(function (err) {
                 if (err)self.logger.error(err.message);
-                self.logger.debug("Stats"+status+": "+wid);
+                self.logger.debug("Stats"+status);
                 if (callback)callback();
             });
         });
