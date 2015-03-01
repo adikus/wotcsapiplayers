@@ -3,7 +3,6 @@ var Logger = require("./../core/logger");
 var _ = require("underscore");
 var VehicleData = require('./../services/veh_data');
 
-
 VehicleData.load(function () {
     var o = {
         scope: {vehs: VehicleData.vehs},

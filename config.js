@@ -25,5 +25,8 @@ module.exports = config = {
     },
     logger: {
         logLevel: process.env.LOG_LEVEL || 0
+    },
+    vehData: {
+        reloadInterval: 60 * 60 * 1000   //1 hour
     }
 };
