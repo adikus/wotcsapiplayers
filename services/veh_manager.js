@@ -39,7 +39,8 @@ module.exports = VehManager = cls.Class.extend({
                     battles: tank.statistics.battles,
                     mark_of_mastery: tank.mark_of_mastery
                 },
-                info: VehicleData.find(tank.tank_id)
+                info: VehicleData.find(tank.tank_id),
+                id: tank.tank_id
             };
 
             if (!finalTank.info) {
@@ -134,6 +135,26 @@ module.exports = VehManager = cls.Class.extend({
             }
             return memo + score;
         }, 0, this);
+    },
+
+    getExpectedValues: function() {
+        return _(this.vehicles).reduce(function(memo, tank) {
+            if(!tank.info || !tank.info.expected){
+                this.logger.warning('Could not find expected values for: ' + tank.id);
+            }
+            memo.frags += tank.stats.battles * tank.info.expected.expFrag;
+            memo.damage += tank.stats.battles * tank.info.expected.expDamage;
+            memo.spotted += tank.stats.battles * tank.info.expected.expSpot;
+            memo.defence += tank.stats.battles * tank.info.expected.expDef;
+            memo.wins += tank.stats.battles * tank.info.expected.expWinRate/100;
+            return memo;
+        }, {
+            frags: 0,
+            damage: 0,
+            spotted: 0,
+            defence: 0,
+            wins: 0
+        }, this);
     },
 
     TYPES: ['lightTank', 'mediumTank', 'heavyTank', 'AT-SPG', 'SPG'],

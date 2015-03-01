@@ -171,6 +171,7 @@ module.exports = ClanLoader = cls.Class.extend({
         this.total.stats_current.EXP += stats.EXP;
         this.total.stats_current.ACR = (parseFloat(stats.ACR) + parseFloat(this.total.stats_current.ACR)).toFixed(2);
         this.total.stats_current.WN7 = (parseFloat(stats.WN7) + parseFloat(this.total.stats_current.WN7)).toFixed(2);
+        this.total.stats_current.WN8 = (parseFloat(stats.WN8) + parseFloat(this.total.stats_current.WN8)).toFixed(2);
         this.total.stats_current.EFR = (parseFloat(stats.EFR) + parseFloat(this.total.stats_current.EFR)).toFixed(2);
         this.total.stats_current.SC3 = (parseFloat(stats.SC3) + parseFloat(this.total.stats_current.SC3)).toFixed(2);
         this.total.stats_current.member_count++;

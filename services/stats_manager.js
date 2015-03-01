@@ -26,6 +26,7 @@ module.exports = StatsManager = cls.Class.extend({
         this.stats["EXP"] = data.xp;
 
         this.stats['WN7'] = this.calculateWN7();
+        this.stats['WN8'] = this.calculateWN8();
         this.stats['EFR'] = this.calculateEFR();
         this.stats['SC3'] = this.calculateSC3();
 
@@ -143,6 +144,25 @@ module.exports = StatsManager = cls.Class.extend({
         if (isNaN(wn7))wn7 = 0;
 
         return Math.round(wn7 * 100) / 100;
+    },
+
+    calculateWN8: function() {
+        var expected_values = this.parent.vehicleManager.getExpectedValues();
+        var stats = this.stats;
+
+        var rDAMAGE = (stats.DMG/stats.GPL)  / (expected_values.damage/stats.GPL);
+        var rSPOT   = (stats.SPT/stats.GPL) / (expected_values.spotted/stats.GPL);
+        var rFRAG   = (stats.FRG/stats.GPL)   / (expected_values.frags/stats.GPL);
+        var rDEF    = (stats.DPT/stats.GPL) / (expected_values.defence/stats.GPL);
+        var rWIN    = (stats.WIN/stats.GPL)    / (expected_values.wins/stats.GPL);
+        var rWINc   = Math.max(0,                     (rWIN    - 0.71) / (1 - 0.71) );
+        var rDAMAGEc= Math.max(0,                     (rDAMAGE - 0.22) / (1 - 0.22) );
+        var rFRAGc  = Math.max(0, Math.min(rDAMAGEc + 0.2, (rFRAG   - 0.12) / (1 - 0.12)));
+        var rSPOTc  = Math.max(0, Math.min(rDAMAGEc + 0.1, (rSPOT   - 0.38) / (1 - 0.38)));
+        var rDEFc   = Math.max(0, Math.min(rDAMAGEc + 0.1, (rDEF    - 0.10) / (1 - 0.10)));
+        var WN8 = 980*rDAMAGEc + 210*rDAMAGEc*rFRAGc + 155*rFRAGc*rSPOTc + 75*rDEFc*rFRAGc + 145*Math.min(1.8,rWINc);
+        if( isNaN(WN8)){ WN8 = 0;}
+        return WN8;
     },
 
     calculateEFR: function () {

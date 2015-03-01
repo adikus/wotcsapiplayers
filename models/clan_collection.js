@@ -89,7 +89,7 @@ var ClanCollection = cls.Class.extend({
             this.clans[data.clan_id].stats.member_count = 1;
         } else {
             var clanStats = this.clans[data.clan_id].stats;
-            var keys = ['GPL', 'WIN', 'DEF', 'SUR', 'FRG', 'SPT', 'ACR', 'DMG', 'CPT', 'DPT', 'EXP', 'WN7', 'EFR', 'SC3'];
+            var keys = ['GPL', 'WIN', 'DEF', 'SUR', 'FRG', 'SPT', 'ACR', 'DMG', 'CPT', 'DPT', 'EXP', 'WN7', 'WN8', 'EFR', 'SC3'];
 
             _(keys).each(function (key) {
                 if(_(stats[key]).isString()){
