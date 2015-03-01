@@ -77,6 +77,7 @@ module.exports = Player = cls.Class.extend({
         this.statsManager.parse(data.player.statistics.all).save();
 
         this.doc.n = data.player.nickname;
+        this.doc.c = data.player.clan_id;
         this.doc.s = '1';
         this.doc.u = new Date();
         this.doc.v = this.vehicleManager.getData();
