@@ -1,7 +1,7 @@
 var cls = require("./../lib/class");
 var config = require('./../config');
 var _ = require("underscore");
-var chalk = require('chalk');
+var clc = require('cli-color');
 
 var LOG_LEVEL = config.logger.logLevel;
 var LOG_LEVELS = {
@@ -44,13 +44,13 @@ Logger.banner = function(banner) {
 Logger.tag = function(level) {
     switch(level){
         case 'debug':
-            return '[' + chalk.cyan(level.toUpperCase()) + ']';
+            return '[' + clc.cyan(level.toUpperCase()) + ']';
         case 'info':
-            return '[' + chalk.green(level.toUpperCase()) + ']';
+            return '[' + clc.green(level.toUpperCase()) + ' ]';
         case 'warning':
-            return '[' + chalk.yellow(level.toUpperCase()) + ']';
+            return '[' + clc.yellow('WARN') + ' ]';
         case 'error':
-            return '[' + chalk.red(level.toUpperCase()) + ']';
+            return '[' + clc.red(level.toUpperCase()) + ']';
     }
     return '';
 };

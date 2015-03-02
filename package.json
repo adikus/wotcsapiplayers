@@ -6,7 +6,7 @@
     "mongoose": ">0",
     "express": ">0",
     "compression": ">0",
-    "chalk": ">0"
+    "cli-color": "*"
   },
   "engines": {
     "node": "0.10.x",
