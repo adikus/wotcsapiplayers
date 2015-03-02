@@ -138,7 +138,7 @@ module.exports = ClanLoader = cls.Class.extend({
                     } else {
                         if (data.clan_id == self.wid) {
                             self.processPlayerData(data)
-                        }
+                        } else self.playerDone();
                     }
                 });
             });
