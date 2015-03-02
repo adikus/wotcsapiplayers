@@ -152,20 +152,21 @@ module.exports = ClanLoader = cls.Class.extend({
         this.total.vehs.addVehs(data);
         this.players.push(data);
         this.playerDone();
-
-        if (this.done && !this.saved) {
-            this.logger.info('Saving clan stats');
-            var stats = _(this.total.stats.getData()).clone();
-            stats.u = new Date();
-            var sm = new StatsManager(this, stats);
-            sm.save();
-            this.saved = true;
-        }
     },
 
     playerDone: function () {
         this.toDo--;
-        if (this.toDo == 0)this.done = true;
+        if (this.toDo == 0){
+            this.done = true;
+            if(!this.saved){
+                this.logger.info('Saving clan stats');
+                var stats = _(this.total.stats.getData()).clone();
+                stats.u = new Date();
+                var sm = new StatsManager(this, stats);
+                sm.save();
+                this.saved = true;
+            }
+        }
     },
 
     handleError: function (err) {

@@ -56,7 +56,7 @@ module.exports = Player = cls.Class.extend({
                         return callback(err, null);
                     }
                     if (!self.parseData(data)) {
-                        return callback({message: "Parse error"}, null);
+                        return callback({message: "Parse error", id: self.wid}, null);
                     }
                     self.save();
                     callback(null, self.getData());
