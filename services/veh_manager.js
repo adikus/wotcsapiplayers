@@ -142,7 +142,7 @@ module.exports = VehManager = cls.Class.extend({
     getExpectedValues: function() {
         return _(this.vehicles).reduce(function(memo, tank) {
             if(!tank.info || !tank.info.expected){
-                this.logger.warning('Could not find expected values for: ' + tank.id);
+                return this.logger.warning('Could not find expected values for: ' + tank.id);
             }
             memo.frags += tank.stats.battles * tank.info.expected.expFrag;
             memo.damage += tank.stats.battles * tank.info.expected.expDamage;
