@@ -69,7 +69,7 @@ module.exports = Player = cls.Class.extend({
 
     parseData: function (rawData) {
         var data = this.parseRawJSON(rawData);
-        if (!data) {
+        if (!data.tanks || !data.player) {
             return false;
         }
 
