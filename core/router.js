@@ -18,7 +18,7 @@ module.exports = Router = cls.Class.extend({
             var method = req.method;
             var path = req.path;
             var query = JSON.stringify(req.query);
-            var ip = req.connection.remoteAddress;
+            var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
             var referer = req.headers.origin || '(Direct)';
 
             self.logger.info(method + ' ' + path + ' ' + query + ' ' + ip + ' ' + referer);
