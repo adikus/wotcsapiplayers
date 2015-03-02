@@ -1,6 +1,6 @@
 module.exports = config = {
     server: {
-        port: 3000
+        port: process.env.PORT || 3000
     },
     db: {
         stats: process.env.MONGOHQ_URL || "mongodb://localhost/wotcsapi",
