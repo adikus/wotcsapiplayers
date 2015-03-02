@@ -11,16 +11,18 @@ module.exports = VehManager = cls.Class.extend({
         this.topTiers = {};
 
         if (this.parent.doc && this.parent.doc.v) {
-            this.vehicles = _(this.parent.doc.v).map(function (tank) {
-                var finalTank = {
-                    stats: {wins: tank.w, battles: tank.b},
-                    info: VehicleData.find(tank.t)
-                };
+            this.vehicles = _(this.parent.doc.v).chain().map(function (tank) {
+                if(tank.t){
+                    var finalTank = {
+                        stats: {wins: tank.w, battles: tank.b},
+                        info: VehicleData.find(tank.t)
+                    };
 
-                this.topTiers[finalTank.info.type] = finalTank.info.level;
+                    this.topTiers[finalTank.info.type] = finalTank.info.level;
 
-                return finalTank;
-            }, this);
+                    return finalTank;
+                }
+            }, this).compact().value();
         } else {
             this.vehicles = [];
         }
