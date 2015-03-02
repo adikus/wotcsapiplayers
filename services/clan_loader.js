@@ -154,6 +154,7 @@ module.exports = ClanLoader = cls.Class.extend({
         this.playerDone();
 
         if (this.done && !this.saved) {
+            this.logger.info('Saving clan stats');
             var stats = _(this.total.stats.getData()).clone();
             stats.u = new Date();
             var sm = new StatsManager(this, stats);
