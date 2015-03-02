@@ -132,6 +132,7 @@ module.exports = ClanLoader = cls.Class.extend({
                 self.pendingRequests++;
                 self.lastWid = player.wid;
                 player.findAndLoad(1, function (err, data) {
+                    self.pendingRequests--;
                     if (err) {
                         self.handleError(err);
                     } else {
