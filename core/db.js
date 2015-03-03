@@ -67,8 +67,13 @@ var statisticSchema = mongoose.Schema({
     _id: 'string',
     value: 'number'
 });
+var pvStatisticSchema = mongoose.Schema({
+    _id: 'string',
+    value: 'mixed'
+});
 var Statistic = playerDB.model('Statistic', statisticSchema);
 var VStatistic = playerDB.model('VStatistic', statisticSchema);
+var PVStatistic = playerDB.model('PVStatistic', pvStatisticSchema);
 //var VStatistic = playerDB.model('TestStatistic', statisticSchema);
 var CStatistic = oldDB.model('CStatistic', statisticSchema);
 
@@ -98,6 +103,7 @@ module.exports = DB = {
     Statistic: Statistic,
     VStatistic: VStatistic,
     CStatistic: CStatistic,
+    PVStatistic: PVStatistic,
     PlayerStatus: PlayerStatus,
     ErrorLog: ErrorLog,
     Job: Job

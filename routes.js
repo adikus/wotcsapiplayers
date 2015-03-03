@@ -12,5 +12,6 @@ module.exports = routes = {
 
     '/stats/vehs': 'stats#vehs',
     '/stats/players': 'stats#players',
-    '/stats/clans': 'stats#clans'
+    '/stats/clans': 'stats#clans',
+    '/stats/scatter': 'stats#scatter'
 };

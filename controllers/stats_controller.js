@@ -1,6 +1,7 @@
 var cls = require("./../lib/class");
 var _ = require("underscore");
 var DB = require('./../core/db');
+var VehicleData = require('./../services/veh_data');
 
 module.exports = StatsController = cls.Class.extend({
     players: function (req, callback) {
@@ -13,6 +14,19 @@ module.exports = StatsController = cls.Class.extend({
 
     vehs: function (req, callback) {
         this.getStats('VStatistic', callback, true);
+    },
+
+    scatter: function(req, callback) {
+        var type = req.query.type;
+
+        DB.PVStatistic.find(function (err, docs) {
+            callback(err, _(docs).reduce(function (memo, tankData) {
+                var tank = VehicleData.find(tankData._id);
+                if(!type || tank.type == type)
+                    memo[tankData._id] = {name: tank.name_i18n, values: tankData.value};
+                return memo;
+            }, {}));
+        });
     },
 
     getStats: function(tableName, callback, vehs) {
