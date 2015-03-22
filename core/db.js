@@ -90,7 +90,8 @@ var newPlayerSchema = mongoose.Schema({
     c: 'number',
     sc: 'mixed',
     v: 'mixed',
-    u: 'date'
+    u: 'date',
+    l: 'date'
 });
 var Player = playerDB.model('Player', newPlayerSchema);
 
