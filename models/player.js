@@ -81,6 +81,7 @@ module.exports = Player = cls.Class.extend({
         this.doc.c = data.player.clan_id;
         this.doc.s = '1';
         this.doc.u = new Date();
+        this.doc.l = new Date(data.player.logout_at*1000);
         this.doc.v = this.vehicleManager.getData();
         this.doc.sc = this.statsManager.getData();
         this.doc.markModified('v');
@@ -117,6 +118,7 @@ module.exports = Player = cls.Class.extend({
             name: this.doc.n,
             clan_id: this.doc.c,
             updated_at: this.doc.u,
+            logout_at: this.doc.l,
             vehs: this.vehicleManager.getBestFormatted(),
             stats_current: _.chain(this.doc.sc || {}).clone().tap(function (stats) {
                 stats.updated_at = stats.u;
