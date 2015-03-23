@@ -44,6 +44,37 @@ module.exports = VehicleData = {
                 veh.expected = row;
             }
         }, this);
+
+        _(this.ExpectedValuesMap).each(function(newId, id) {
+            var veh = this.find(newId);
+            if(veh){
+                veh.expected = this.find(id).expected;
+            }
+        }, this);
+
         callback();
+    },
+
+    ExpectedValuesMap: {
+        38737: 5969,
+        38753: 2657,
+        38961: 2865,
+        39009: 1121,
+        39249: 1105,
+        39489: 2113,
+        39505: 11857,
+        39745: 51985,
+        39761: 8529,
+        39937: 2305,
+        39953: 55569,
+        39969: 5921,
+        40001: 14145,
+        40017: 2897,
+        40193: 53249,
+        40209: 1297,
+        40225: 3873,
+        40449: 52481,
+        40465: 7697,
+        40481: 1057
     }
 };
