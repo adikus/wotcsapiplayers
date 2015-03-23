@@ -45,7 +45,7 @@ module.exports = VehicleData = {
             }
         }, this);
 
-        _(this.ExpectedValuesMap).each(function(newId, id) {
+        _(this.ExpectedValuesMap).each(function(id, newId) {
             var veh = this.find(newId);
             if(veh){
                 veh.expected = this.find(id).expected;
