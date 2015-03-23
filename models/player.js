@@ -81,7 +81,7 @@ module.exports = Player = cls.Class.extend({
         this.doc.c = data.player.clan_id;
         this.doc.s = '1';
         this.doc.u = new Date();
-        this.doc.l = new Date(data.player.logout_at*1000);
+        this.doc.l = new Date(Math.max(data.player.logout_at, data.player.last_battle_time) * 1000);
         this.doc.v = this.vehicleManager.getData();
         this.doc.sc = this.statsManager.getData();
         this.doc.markModified('v');

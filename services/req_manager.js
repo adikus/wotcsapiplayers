@@ -176,7 +176,7 @@ module.exports = ReqManager = cls.Class.extend({
         var method = task.method;
         var fields = null;
         if (subject == 'account' && method == 'info') {
-            fields = 'statistics.all,nickname,clan_id,logout_at ';
+            fields = 'statistics.all,nickname,clan_id,logout_at,last_battle_time ';
         }
         if (subject == 'account' && method == 'tanks') {
             fields = 'statistics.battles,statistics.wins,tank_id,mark_of_mastery';
