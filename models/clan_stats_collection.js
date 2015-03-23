@@ -14,6 +14,7 @@ module.exports = ClanStatsCollection = cls.Class.extend({
         var stats = data.stats_current;
 
         _(StatsManager.stats).each(function (key) {
+            if(!stats[key] || isNaN(stats[key]))return;
             if(_(stats[key]).isString()){
                 this.stats[key] = (parseFloat(this.stats[key]) + parseFloat(stats[key])).toFixed(2);
             }else{
