@@ -127,7 +127,8 @@ module.exports = Player = cls.Class.extend({
             stats_current: _.chain(this.doc.sc || {}).clone().tap(function (stats) {
                 stats.updated_at = stats.u;
                 delete stats.u;
-            }).value()
+            }).value(),
+            status: this.doc.s
         };
     },
 
