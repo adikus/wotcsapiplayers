@@ -73,6 +73,7 @@ module.exports = Player = cls.Class.extend({
 
         if (!data.player) {
             this.doc.s = '-1';
+            this.doc.c = 0;
             this.doc.u = new Date();
             return true;
         }
