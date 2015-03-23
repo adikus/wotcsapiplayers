@@ -70,11 +70,15 @@ module.exports = Player = cls.Class.extend({
 
     parseData: function (rawData) {
         var data = this.parseRawJSON(rawData);
-        if (!data.tanks || !data.player) {
-            return false;
+
+        if (!data.player) {
+            this.doc.s = '-1';
+            this.doc.u = new Date();
+            return true;
         }
 
-        this.vehicleManager.parse(data.tanks);
+        if(data.tanks)
+            this.vehicleManager.parse(data.tanks);
         this.statsManager.parse(data.player.statistics.all).save();
 
         this.doc.n = data.player.nickname;

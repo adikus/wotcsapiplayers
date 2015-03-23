@@ -9,6 +9,8 @@ module.exports = VehManager = cls.Class.extend({
         this.logger = new Logger('VehManager(' + this.parent.type + '|' + this.parent.wid + ')');
 
         this.topTiers = {};
+        this.totalBattles = 0;
+        this.totalTierBattles = 0;
 
         if (this.parent.doc && this.parent.doc.v) {
             this.vehicles = _(this.parent.doc.v).chain().map(function (tank) {
