@@ -14,7 +14,7 @@ module.exports = VehManager = cls.Class.extend({
 
         if (this.parent.doc && this.parent.doc.v) {
             this.vehicles = _(this.parent.doc.v).chain().map(function (tank) {
-                if(tank.t){
+                if(tank.t && tank.t > 0){
                     var finalTank = {
                         stats: {wins: tank.w, battles: tank.b},
                         info: VehicleData.find(tank.t)
