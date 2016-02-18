@@ -39,11 +39,30 @@ function loadOtherNations(vehData, callback) {
                 addFromRegion(3, vehData, data);
                 loadTankopedia(5, function(data) {
                     addFromRegion(5, vehData, data);
-                        callback();
+                    addStatic(vehData);
+                    callback();
                 });
             });
         });
     });
+}
+
+function addStatic(vehData) {
+    vehData.data[63505] = {
+        nation_i18n: 'Germany',
+        name: 'G117_Toldi_III',
+        level: 3,
+        image: 'http://api.worldoftanks.eu/static/2.36.0/wot/encyclopedia/vehicle/germany-G117_Toldi_III.png',
+        image_small: 'http://api.worldoftanks.eu/static/2.36.0/wot/encyclopedia/vehicle/small/germany-G117_Toldi_III.png',
+        nation: 'germany',
+        is_premium: true,
+        type_i18n: 'Light Tank',
+        contour_image: 'http://api.worldoftanks.eu/static/2.36.0/wot/encyclopedia/vehicle/contour/germany-G117_Toldi_III.png',
+        short_name_i18n: 'Toldi III',
+        name_i18n: '43 M. Toldi III',
+        type: 'lightTank',
+        tank_id: 63505
+    };
 }
 
 function addFromRegion(region, vehData, data) {
