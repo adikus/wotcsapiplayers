@@ -3,7 +3,7 @@ var _ = require("underscore");
 
 module.exports = ClanVehsCollection = cls.Class.extend({
     init: function () {
-        this.vehs = {1: [], 2: [], 3: [], 4: []};
+        this.vehs = {0: [], 1: [], 2: [], 3: [], 4: []};
     },
 
     addVehs: function (data) {
@@ -26,12 +26,7 @@ module.exports = ClanVehsCollection = cls.Class.extend({
                         newVeh.count = 1;
                         delete newVeh.updated_at;
 
-                        if(!this.vehs[type]){
-                            // #FIXME: this is just for debuging
-                            console.log(vehs, type, newVeh);
-                        } else {
-                            this.vehs[type].push(newVeh);
-                        }
+                        this.vehs[type].push(newVeh);
                     }
                 }
             }, this);
