@@ -26,7 +26,12 @@ module.exports = ClanVehsCollection = cls.Class.extend({
                         newVeh.count = 1;
                         delete newVeh.updated_at;
 
-                        this.vehs[type].push(newVeh);
+                        if(!this.vehs[type]){
+                            // #FIXME: this is just for debuging
+                            console.log(vehs, type, newVeh);
+                        } else {
+                            this.vehs[type].push(newVeh);
+                        }
                     }
                 }
             }, this);
